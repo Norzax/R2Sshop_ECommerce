@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,5 +43,109 @@ public class CategoryServiceImpl implements CategoryService {
                 .message("Found list categories")
                 .data(listRes)
                 .build();
+    }
+
+    @Override
+    public ResponseDTO<CategoryDTO> findById(Long categoryId) {
+        Optional<CategoryEntity> categoryOptional = categoryRepository.findById(categoryId);
+
+        if (categoryOptional.isPresent()) {
+            CategoryEntity categoryEntity = categoryOptional.get();
+            CategoryDTO categoryDTO = modelMapper.map(categoryEntity, CategoryDTO.class);
+
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.OK))
+                    .message("Category found")
+                    .data(categoryDTO)
+                    .build();
+        } else {
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.NOT_FOUND))
+                    .message("Category not found")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<CategoryDTO> create(CategoryDTO categoryDTO) {
+        try {
+            CategoryEntity newCategory = modelMapper.map(categoryDTO, CategoryEntity.class);
+            CategoryEntity savedCategory = categoryRepository.save(newCategory);
+
+            CategoryDTO savedCategoryDTO = modelMapper.map(savedCategory, CategoryDTO.class);
+
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.CREATED.value()))
+                    .message("Category created successfully")
+                    .data(savedCategoryDTO)
+                    .build();
+        } catch (Exception e) {
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to create category")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<CategoryDTO> update(Long id, CategoryDTO updatedCategoryDTO) {
+        try {
+            Optional<CategoryEntity> optionalCategory = categoryRepository.findById(id);
+
+            if (optionalCategory.isPresent()) {
+                CategoryEntity existingCategory = optionalCategory.get();
+
+                // Update the fields with new values from updatedCategoryDTO
+                existingCategory.setName(updatedCategoryDTO.getName());
+                existingCategory.setDescription(updatedCategoryDTO.getDescription());
+
+                // Save the updated category
+                CategoryEntity updatedCategory = categoryRepository.save(existingCategory);
+
+                CategoryDTO updatedCategoryDTO = modelMapper.map(updatedCategory, CategoryDTO.class);
+
+                return ResponseDTO.<CategoryDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message("Category updated successfully")
+                        .data(updatedCategoryDTO)
+                        .build();
+            } else {
+                return ResponseDTO.<CategoryDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("Category not found for update")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to update category")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<Void> delete(Long id) {
+        try {
+            Optional<CategoryEntity> optionalCategory = categoryRepository.findById(id);
+
+            if (optionalCategory.isPresent()) {
+                categoryRepository.deleteById(id);
+
+                return ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message("Category deleted successfully")
+                        .build();
+            } else {
+                return ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("Category not found for deletion")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<Void>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to delete category")
+                    .build();
+        }
     }
 }

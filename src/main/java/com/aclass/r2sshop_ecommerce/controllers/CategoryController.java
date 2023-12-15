@@ -3,11 +3,10 @@ package com.aclass.r2sshop_ecommerce.controllers;
 import com.aclass.r2sshop_ecommerce.models.dto.CategoryDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.category.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +24,34 @@ public class CategoryController {
     public ResponseEntity<ResponseDTO<List<CategoryDTO>>> findAll() {
         ResponseDTO<List<CategoryDTO>> response = categoryService.findAll();
 
+        HttpStatus httpStatus = HttpStatus.valueOf(response.getStatus());
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDTO<CategoryDTO>> findById(@PathVariable Long id) {
+        ResponseDTO<CategoryDTO> response = categoryService.findById(id);
+        HttpStatus httpStatus = HttpStatus.valueOf(response.getStatus());
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @PostMapping("/")
+    public ResponseEntity<ResponseDTO<CategoryDTO>> create(@Valid @RequestBody CategoryDTO categoryDTO) {
+        ResponseDTO<CategoryDTO> response = categoryService.create(categoryDTO);
+        HttpStatus httpStatus = HttpStatus.valueOf(response.getStatus());
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ResponseDTO<CategoryDTO>> update(@PathVariable Long id, @Valid @RequestBody CategoryDTO updatedCategoryDTO) {
+        ResponseDTO<CategoryDTO> response = categoryService.update(id, updatedCategoryDTO);
+        HttpStatus httpStatus = HttpStatus.valueOf(response.getStatus());
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
+        ResponseDTO<Void> response = categoryService.delete(id);
         HttpStatus httpStatus = HttpStatus.valueOf(response.getStatus());
         return ResponseEntity.status(httpStatus).body(response);
     }

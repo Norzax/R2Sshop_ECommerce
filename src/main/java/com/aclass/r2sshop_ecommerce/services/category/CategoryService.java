@@ -8,4 +8,10 @@ import java.util.List;
 
 public interface CategoryService extends Service {
     ResponseDTO<List<CategoryDTO>> findAll();
+    ResponseDTO<CategoryDTO> findById(Long categoryId);
+    ResponseDTO<CategoryDTO> create(CategoryDTO categoryDTO);
+    ResponseDTO<CategoryDTO> update(Long id, CategoryDTO updatedCategoryDTO);
+    ResponseDTO<Void> delete(Long id);
+
+
 }
