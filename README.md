@@ -31,7 +31,7 @@ R2Sshop E-Commerce là một ứng dụng thương mại điện tử đơn gi�
 
 ## Các Nhánh Quan Trọng
 
-- **master**: Nhánh chính, luôn ổn định và chứa phiên bản đã được phát hành.
+- **main**: Nhánh chính, luôn ổn định và chứa phiên bản đã được phát hành.
 - **develop**: Nhánh phát triển, được sử dụng cho việc phát triển mới, các tính năng chưa hoàn thiện.
 - **feature/<tên-tính-năng>**: Nhánh cho từng tính năng cụ thể đang được phát triển.
 - **hotfix/<tên-hotfix>**: Nhánh sửa lỗi nhanh chóng để fix các vấn đề cấp bách từ production.
