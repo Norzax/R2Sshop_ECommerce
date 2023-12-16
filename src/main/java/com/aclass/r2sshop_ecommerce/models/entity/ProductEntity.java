@@ -2,7 +2,19 @@ package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.List;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity()
+@Table(name = "product")
 public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,7 +24,10 @@ public class ProductEntity {
     private String name;
 
     @ManyToOne()
-    @JoinColumn(name = "Category_id", nullable = false, referencedColumnName = "id")// => category's id
-    @JsonBackReference
+    @JoinColumn(name = "category_id")
     private CategoryEntity category;
+
+    @OneToMany(mappedBy = "product")
+    private List<VariantProductEntity> variantProductEntities;
+
 }
