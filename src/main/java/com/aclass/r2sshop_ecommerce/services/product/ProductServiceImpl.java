@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.services.product;
 
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
+import com.aclass.r2sshop_ecommerce.exceptions.ProductNotFoundException;
 import com.aclass.r2sshop_ecommerce.models.dto.ProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.ProductEntity;
@@ -27,6 +28,22 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductDTO getProductById(Long productId) {
+        Optional<ProductEntity> optionalProduct = productRepository.findById(productId);
+
+        if (optionalProduct.isPresent()) {
+            ProductEntity productEntity = optionalProduct.get();
+            return modelMapper.map(productEntity, ProductDTO.class);
+        } else {
+            try {
+                throw new ProductNotFoundException("Product not found with id: " + productId);
+            } catch (ProductNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
     public ResponseDTO<List<ProductDTO>> findProductsByCategoryId(Long categoryId, int page, int pageSize) {
         if (page < 1 || pageSize < 1) {
             return ResponseDTO.<List<ProductDTO>>builder()
@@ -42,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
                     .map(productEntity -> modelMapper.map(productEntity, ProductDTO.class))
                     .collect(Collectors.toList());
 
-            int totalProducts = productRepository.countProductsByCategoryId(categoryId);
+            int totalProducts = (int) productRepository.countProductsByCategoryId(categoryId);
             int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
             return ResponseDTO.<List<ProductDTO>>builder()
@@ -59,13 +76,14 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+
     @Override
     public ResponseDTO<List<ProductDTO>> findAll() {
         List<ProductEntity> list = productRepository.findAll();
 
         if (list.isEmpty()) {
             return ResponseDTO.<List<ProductDTO>>builder()
-                    .status(String.valueOf(HttpStatus.NOT_FOUND))
+                    .status(String.valueOf(HttpStatus.NOT_FOUND)) // Đây có thể là nguyên nhân của lỗi
                     .message("Not found list products")
                     .build();
         }

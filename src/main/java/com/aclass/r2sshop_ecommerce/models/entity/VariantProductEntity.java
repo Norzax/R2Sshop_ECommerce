@@ -31,7 +31,7 @@ public class VariantProductEntity {
     private String model;
   
     @Column(name = "price")
-    private Long price;
+    private long price;
   
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false, referencedColumnName = "id")
