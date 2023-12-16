@@ -1,32 +1,29 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CategoryEntity {
+public class RoleUserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", length = 100)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false, referencedColumnName = "id")
+    private RoleEntity role;
 
-    @Column(name = "description")
-    private String description;
-
-    @OneToMany(mappedBy = "category_id")
+    @ManyToOne
     @JsonBackReference
-    private List<ProductEntity> productEntities;
+    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+    private UserEntity user;
 }
