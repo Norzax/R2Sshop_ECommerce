@@ -15,7 +15,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "user")
 public class UserEntity {
     @Id
@@ -35,12 +35,12 @@ public class UserEntity {
     @Column(name = "email", length = 100)
     private String email;
 
-    @OneToMany(mappedBy = "user_id")
+    @OneToMany(mappedBy = "user")
     private List<AddressEntity> addressEntities;
 
-    @OneToOne(mappedBy = "user_id")
+    @OneToOne(mappedBy = "user")
     private CartEntity cart;
 
-    @OneToMany(mappedBy = "user_id")
+    @OneToMany(mappedBy = "user")
     private List<RoleUserEntity> roleUserEntities;
 }

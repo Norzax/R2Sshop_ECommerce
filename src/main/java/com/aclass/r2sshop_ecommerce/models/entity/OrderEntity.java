@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "orders")
 public class OrderEntity {
 
@@ -32,7 +32,7 @@ public class OrderEntity {
     @Column(name = "total_price")
     private Double totalPrice;
 
-    @OneToMany(mappedBy = "order_id")
+    @OneToMany(mappedBy = "order")
     private List<CartLineItemEntity> cartLineItems;
 
     @OneToMany(mappedBy = "order")

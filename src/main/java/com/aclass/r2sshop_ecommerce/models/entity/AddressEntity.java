@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "address")
 public class AddressEntity {
     @Id
@@ -26,4 +26,5 @@ public class AddressEntity {
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
     @JsonBackReference
     private UserEntity user;
+}
 

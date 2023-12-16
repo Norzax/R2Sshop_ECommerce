@@ -1,5 +1,6 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "category")
 public class CategoryEntity {
     @Id
@@ -26,7 +27,7 @@ public class CategoryEntity {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "category_id")
+    @OneToMany(mappedBy = "category")
     @JsonBackReference
     private List<ProductEntity> productEntities;
 }
