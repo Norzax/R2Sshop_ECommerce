@@ -29,8 +29,11 @@ public class OrderEntity {
     @Column(name = "delivery_time")
     private Timestamp deliveryTime;
 
-    @Column(name = "total_price",length = 8)
-    private Float totalPrice;
+    @Column(name = "total_price")
+    private Double totalPrice;
+
+    @OneToMany(mappedBy = "order_id")
+    private List<CartLineItemEntity> cartLineItems;
 
     @OneToMany(mappedBy = "order")
     private List<CartLineItemEntity> cartLineItemEntities;

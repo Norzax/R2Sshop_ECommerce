@@ -26,6 +26,7 @@ public class CategoryEntity {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "category")
-    private List<ProductEntity> productEntity;
+    @OneToMany(mappedBy = "category_id")
+    @JsonBackReference
+    private List<ProductEntity> productEntities;
 }

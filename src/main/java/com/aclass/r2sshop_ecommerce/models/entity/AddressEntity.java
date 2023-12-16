@@ -23,6 +23,7 @@ public class AddressEntity {
     private String address;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+    @JsonBackReference
     private UserEntity user;
-}
+

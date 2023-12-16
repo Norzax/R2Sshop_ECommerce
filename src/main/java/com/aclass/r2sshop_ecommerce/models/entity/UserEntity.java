@@ -23,28 +23,24 @@ public class UserEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "username")
+    @Column(name = "username", length = 100)
     private String username;
 
-    @Column(name = "password")
+    @Column(name = "password", length = 100)
     private String password;
 
-    @Column(name = "full_name")
+    @Column(name = "full_Name", length = 100)
     private String fullName;
 
-    @Column(name = "email")
+    @Column(name = "email", length = 100)
     private String email;
 
-    @OneToOne(mappedBy = "user")
+    @OneToMany(mappedBy = "user_id")
+    private List<AddressEntity> addressEntities;
+
+    @OneToOne(mappedBy = "user_id")
     private CartEntity cart;
 
-    @OneToMany(mappedBy = "address")
-    private List<AddressEntity> address;
-
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
-    @JsonManagedReference
-    private Set<RoleEntity> role;
+    @OneToMany(mappedBy = "user_id")
+    private List<RoleUserEntity> roleUserEntities;
 }

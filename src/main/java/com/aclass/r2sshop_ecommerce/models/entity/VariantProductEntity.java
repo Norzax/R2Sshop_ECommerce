@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,15 +29,16 @@ public class VariantProductEntity {
 
     @Column(name="model", length = 100)
     private String model;
-
-    @Column(name = "price",length = 8)
-    private Float price;
-
-    @OneToMany(mappedBy = "variantProduct")
-    private List<CartLineItemEntity> cartLineItemEntities;
-
-    @ManyToOne()
-    @JoinColumn(name = "product_id")
+  
+    @Column(name = "price")
+    private Long price;
+  
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false, referencedColumnName = "id")
+    @JsonBackReference
     private ProductEntity product;
+
+    @OneToMany(mappedBy = "variant_product_id")
+    private List<CartLineItemEntity> cartLineItemEntities;
 }
 

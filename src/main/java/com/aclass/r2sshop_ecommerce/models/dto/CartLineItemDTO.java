@@ -12,8 +12,12 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartLineItemDTO {
-    private int quanlity;
-    private Float totalPrice;
+    private Long id;
+    private Long cartId;
+    private Long variantProductId;
+    private int quantity;
+    private Double totalPrice;
     private Timestamp addedDate;
     private Boolean isDeleted;
+    private Long orderId;
 }

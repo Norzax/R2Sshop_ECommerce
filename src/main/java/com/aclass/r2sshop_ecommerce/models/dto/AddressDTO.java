@@ -9,7 +9,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddressDTO {
-        private long id;
+        private Long id;
         private String address;
+        private Long userId;
 }
 
