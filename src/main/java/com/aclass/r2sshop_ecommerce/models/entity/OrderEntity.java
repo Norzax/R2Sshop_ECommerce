@@ -3,19 +3,21 @@ package com.aclass.r2sshop_ecommerce.models.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.util.List;
 
-@Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Entity()
+@Table(name = "orders")
 public class OrderEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -27,10 +29,12 @@ public class OrderEntity {
     @Column(name = "delivery_time")
     private Timestamp deliveryTime;
 
-    @Column(name = "total_price",length = 8)
+    @Column(name = "total_price")
     private Double totalPrice;
 
     @OneToMany(mappedBy = "order_id")
     private List<CartLineItemEntity> cartLineItems;
 
+    @OneToMany(mappedBy = "order")
+    private List<CartLineItemEntity> cartLineItemEntities;
 }

@@ -4,17 +4,17 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
-
-@Entity
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Entity()
+@Table(name = "variant_product")
 public class VariantProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,9 +29,10 @@ public class VariantProductEntity {
 
     @Column(name="model", length = 100)
     private String model;
-
+  
     @Column(name = "price")
     private Long price;
+  
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false, referencedColumnName = "id")
     @JsonBackReference

@@ -1,5 +1,4 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -10,12 +9,15 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
-@Entity
-@Data
+
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Entity
+@Table(name = "cart")
 public class CartEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,5 +34,4 @@ public class CartEntity {
 
     @OneToMany(mappedBy = "cart_id")
     private List<CartLineItemEntity> cartLineItemEntities;
-
 }
