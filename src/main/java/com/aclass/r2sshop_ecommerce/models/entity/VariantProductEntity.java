@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "variant_product")
 public class VariantProductEntity {
     @Id
@@ -38,7 +38,7 @@ public class VariantProductEntity {
     @JsonBackReference
     private ProductEntity product;
 
-    @OneToMany(mappedBy = "variant_product_id")
+    @OneToMany(mappedBy = "variantProduct")
     private List<CartLineItemEntity> cartLineItemEntities;
 }
 

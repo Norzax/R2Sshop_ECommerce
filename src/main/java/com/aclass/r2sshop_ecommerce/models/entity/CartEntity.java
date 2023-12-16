@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -32,6 +31,6 @@ public class CartEntity {
     @JsonBackReference
     private UserEntity user;
 
-    @OneToMany(mappedBy = "cart_id")
+    @OneToMany(mappedBy = "cart")
     private List<CartLineItemEntity> cartLineItemEntities;
 }

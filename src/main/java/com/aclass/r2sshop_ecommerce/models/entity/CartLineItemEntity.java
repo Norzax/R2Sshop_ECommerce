@@ -23,7 +23,7 @@ public class CartLineItemEntity {
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false, referencedColumnName = "id")
     @JsonBackReference
-    private CartEntity Cart;
+    private CartEntity cart;
 
     @ManyToOne
     @JoinColumn(name = "variant_product_id", nullable = false, referencedColumnName = "id")

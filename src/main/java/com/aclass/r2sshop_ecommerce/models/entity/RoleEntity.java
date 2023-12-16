@@ -14,7 +14,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity()
+@Entity
 @Table(name = "role")
 public class RoleEntity {
     @Id
@@ -28,7 +28,7 @@ public class RoleEntity {
     @Column(name = "description")
     private String description;
   
-    @OneToMany(mappedBy = "role_id")
+    @OneToMany(mappedBy = "role")
     @JsonBackReference
     private List<RoleUserEntity> roleUserEntities;
 }
