@@ -1,10 +1,23 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.util.List;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity()
+@Table(name = "orders")
 public class OrderEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -13,12 +26,12 @@ public class OrderEntity {
     @Column(name = "address")
     private String address;
 
-    @Column(name = "delivery_Time")
+    @Column(name = "delivery_time")
     private Timestamp deliveryTime;
 
-    @Column(name = "total_Price",length = 8)
+    @Column(name = "total_price",length = 8)
     private Float totalPrice;
-    @OneToMany(mappedBy = "Oder_id")
-    private CartLineItemEntity cartLineItem;
 
+    @OneToMany(mappedBy = "order")
+    private List<CartLineItemEntity> cartLineItemEntities;
 }
