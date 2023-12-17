@@ -9,4 +9,5 @@ import java.util.List;
 public interface ProductService extends Service<ProductDTO> {
     // Lấy danh sách sản phẩm theo id danh mục với phân trang
     ResponseDTO<List<ProductDTO>> findProductsByCategoryId(Long categoryId, int currentPage, int pageSize);
+    ProductDTO getProductById(Long productId);
 }
