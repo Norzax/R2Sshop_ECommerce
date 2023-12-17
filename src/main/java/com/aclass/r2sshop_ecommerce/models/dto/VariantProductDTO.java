@@ -14,5 +14,5 @@ public class VariantProductDTO {
     private String color;
     private String size;
     private String model;
-    private String price;
+    private Long price;
 }
