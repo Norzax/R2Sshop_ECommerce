@@ -7,17 +7,17 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 
     @Query("SELECT COUNT(p) FROM ProductEntity p WHERE p.category.id = :categoryId")
-    int countProductsByCategoryId(@Param("categoryId") Long categoryId);
+    long countProductsByCategoryId(@Param("categoryId") Long categoryId);
 
-    @Query("SELECT p FROM ProductEntity p WHERE p.category.id = :categoryId")
-    List<ProductEntity> findProductsByCategoryIdWithPaging(
-            @Param("categoryId") Long categoryId,
-            @Param("startIndex") int startIndex,
-            @Param("pageSize") int pageSize
-    );
+    @Query("SELECT p FROM ProductEntity p WHERE p.category.id = ?1")
+    List<ProductEntity> findProductsByCategoryIdWithPaging(Long categoryId, int startIndex, int pageSize);
+
+    @Query("SELECT p FROM ProductEntity p LEFT JOIN FETCH p.variantProductEntities WHERE p.id = :productId")
+    Optional<ProductEntity> findProductWithVariantsById(@Param("productId") Long productId);
 }
