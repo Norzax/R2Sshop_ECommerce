@@ -1,11 +1,12 @@
 package com.aclass.r2sshop_ecommerce.services;
 
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public interface Service<D> {
+public interface IService<D> {
 
     ResponseDTO<List<D>> findAll();
 

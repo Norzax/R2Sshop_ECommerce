@@ -57,30 +57,30 @@ public class ProductController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ResponseDTO<List<ProductDTO>>> getProductsByCategoryId(
-            @PathVariable Long categoryId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) {
-        try {
-            ResponseDTO<List<ProductDTO>> responseDTO = productService.findProductsByCategoryId(categoryId, page, pageSize);
-
-            return ResponseEntity.ok(
-                    ResponseDTO.<List<ProductDTO>>builder()
-                            .status(responseDTO.getStatus())
-                            .message(responseDTO.getMessage())
-                            .data(responseDTO.getData())
-                            .build()
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ResponseDTO.<List<ProductDTO>>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message("Failed to retrieve products")
-                            .build()
-                    );
-        }
-    }
+//    @GetMapping("/category/{categoryId}")
+//    public ResponseEntity<ResponseDTO<List<ProductDTO>>> getProductsByCategoryId(
+//            @PathVariable Long categoryId,
+//            @RequestParam(defaultValue = "1") int page,
+//            @RequestParam(defaultValue = "10") int pageSize
+//    ) {
+//        try {
+//            ResponseDTO<List<ProductDTO>> responseDTO = productService.findProductsByCategoryId(categoryId, page, pageSize);
+//
+//            return ResponseEntity.ok(
+//                    ResponseDTO.<List<ProductDTO>>builder()
+//                            .status(responseDTO.getStatus())
+//                            .message(responseDTO.getMessage())
+//                            .data(responseDTO.getData())
+//                            .build()
+//            );
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body(ResponseDTO.<List<ProductDTO>>builder()
+//                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+//                            .message("Failed to retrieve products")
+//                            .build()
+//                    );
+//        }
+//    }
 }
 

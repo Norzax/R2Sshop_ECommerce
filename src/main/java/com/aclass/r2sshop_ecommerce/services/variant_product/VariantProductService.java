@@ -1,7 +1,9 @@
 package com.aclass.r2sshop_ecommerce.services.variant_product;
 
 import com.aclass.r2sshop_ecommerce.services.IService;
+import org.springframework.stereotype.Service;
 
-public interface VariantProductIService extends IService {
+@Service
+public interface VariantProductService extends IService {
 
 }
