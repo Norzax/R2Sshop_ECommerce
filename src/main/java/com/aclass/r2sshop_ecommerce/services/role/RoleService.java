@@ -1,6 +1,8 @@
 package com.aclass.r2sshop_ecommerce.services.role;
 
 import com.aclass.r2sshop_ecommerce.services.IService;
+import org.springframework.stereotype.Service;
 
-public interface RoleIService extends IService {
+@Service
+public interface RoleService extends IService {
 }

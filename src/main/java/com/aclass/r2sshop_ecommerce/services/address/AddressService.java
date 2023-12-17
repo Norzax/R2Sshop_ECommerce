@@ -1,6 +1,8 @@
 package com.aclass.r2sshop_ecommerce.services.address;
 
 import com.aclass.r2sshop_ecommerce.services.IService;
+import org.springframework.stereotype.Service;
 
-public interface AddressIService extends IService {
+@Service
+public interface AddressService extends IService {
 }

@@ -21,11 +21,12 @@ public class ProductEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "name", length = 100)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "category", nullable = false, referencedColumnName = "id")
+    @JoinColumn(name = "category_id", nullable = false, referencedColumnName = "id")
     private CategoryEntity category;
 
     @OneToMany(mappedBy = "product")

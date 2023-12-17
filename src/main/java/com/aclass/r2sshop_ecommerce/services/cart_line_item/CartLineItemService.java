@@ -1,6 +1,8 @@
 package com.aclass.r2sshop_ecommerce.services.cart_line_item;
 
 import com.aclass.r2sshop_ecommerce.services.IService;
+import org.springframework.stereotype.Service;
 
-public interface CartLineItemIService extends IService {
+@Service
+public interface CartLineItemService extends IService {
 }
