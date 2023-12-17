@@ -1,6 +1,6 @@
 package com.aclass.r2sshop_ecommerce.services.role;
 
-import com.aclass.r2sshop_ecommerce.services.Service;
+import com.aclass.r2sshop_ecommerce.services.IService;
 
-public interface RoleService extends Service {
+public interface RoleIService extends IService {
 }

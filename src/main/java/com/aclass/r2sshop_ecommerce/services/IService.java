@@ -4,6 +4,7 @@ import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 
 import java.util.List;
 
+@Service
 public interface Service<D> {
 
     ResponseDTO<List<D>> findAll();

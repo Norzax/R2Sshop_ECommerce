@@ -1,7 +1,7 @@
 package com.aclass.r2sshop_ecommerce.services.variant_product;
 
-import com.aclass.r2sshop_ecommerce.services.Service;
+import com.aclass.r2sshop_ecommerce.services.IService;
 
-public interface VariantProductService extends Service  {
+public interface VariantProductIService extends IService {
 
 }
