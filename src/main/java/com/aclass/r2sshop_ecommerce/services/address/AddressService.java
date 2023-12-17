@@ -1,6 +1,6 @@
 package com.aclass.r2sshop_ecommerce.services.address;
 
-import com.aclass.r2sshop_ecommerce.services.Service;
+import com.aclass.r2sshop_ecommerce.services.IService;
 
-public interface AddressService extends Service {
+public interface AddressIService extends IService {
 }

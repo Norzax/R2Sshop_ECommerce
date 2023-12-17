@@ -1,6 +1,6 @@
 package com.aclass.r2sshop_ecommerce.services.user;
 
-import com.aclass.r2sshop_ecommerce.services.Service;
+import com.aclass.r2sshop_ecommerce.services.IService;
 
-public interface UserService extends Service {
+public interface UserIService extends IService {
 }
