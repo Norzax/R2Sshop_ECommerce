@@ -31,7 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (list.isEmpty()) {
             return ResponseDTO.<List<CategoryDTO>>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND))
-                    .message("Not found list categories")
+                    .message(AppConstants.NOT_FOUND_LIST_MESSAGE)
                     .build();
         }
 
@@ -41,7 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         return ResponseDTO.<List<CategoryDTO>>builder()
                 .status(String.valueOf(HttpStatus.OK))
-                .message("Found list categories")
+                .message(AppConstants.FOUND_LIST_MESSAGE)
                 .data(listRes)
                 .build();
     }
@@ -54,33 +54,35 @@ public class CategoryServiceImpl implements CategoryService {
             CategoryDTO categoryDTO = modelMapper.map(optionalCategory.get(), CategoryDTO.class);
             return ResponseDTO.<CategoryDTO>builder()
                     .status(String.valueOf(HttpStatus.OK.value()))
-                    .message("Category found")
+                    .message(AppConstants.FOUND_MESSAGE)
                     .data(categoryDTO)
                     .build();
         } else {
             return ResponseDTO.<CategoryDTO>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message("Category not found")
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
                     .build();
         }
     }
 
     @Override
     public ResponseDTO<CategoryDTO> create(CategoryDTO categoryDTO) {
-        // Map the CategoryDTO to CategoryEntity
-        CategoryEntity categoryEntity = modelMapper.map(categoryDTO, CategoryEntity.class);
+        try {
+            CategoryEntity categoryEntity = modelMapper.map(categoryDTO, CategoryEntity.class);
+            CategoryEntity savedCategory = categoryRepository.save(categoryEntity);
+            CategoryDTO savedCategoryDTO = modelMapper.map(savedCategory, CategoryDTO.class);
 
-        // Save the entity
-        CategoryEntity savedCategory = categoryRepository.save(categoryEntity);
-
-        // Map the saved entity back to DTO
-        CategoryDTO savedCategoryDTO = modelMapper.map(savedCategory, CategoryDTO.class);
-
-        return ResponseDTO.<CategoryDTO>builder()
-                .status(String.valueOf(HttpStatus.CREATED.value()))
-                .message("Category created " + AppConstants.SUCCESS_MESSAGE)
-                .data(savedCategoryDTO)
-                .build();
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.CREATED.value()))
+                    .message(AppConstants.CREATE_SUCCESS_MESSAGE)
+                    .data(savedCategoryDTO)
+                    .build();
+        } catch (Exception e) {
+            return ResponseDTO.<CategoryDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.CREATE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
@@ -91,30 +93,27 @@ public class CategoryServiceImpl implements CategoryService {
             if (optionalCategory.isPresent()) {
                 CategoryEntity existingCategory = optionalCategory.get();
 
-                // Update the fields with new values from updatedCategoryDTO
                 existingCategory.setName(categoryDTO.getName());
                 existingCategory.setDescription(categoryDTO.getDescription());
 
-                // Save the updated category
                 CategoryEntity updatedCategory = categoryRepository.save(existingCategory);
-
                 CategoryDTO updatedCategoryDTO = modelMapper.map(updatedCategory, CategoryDTO.class);
 
                 return ResponseDTO.<CategoryDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Category updated" + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
                         .data(updatedCategoryDTO)
                         .build();
             } else {
                 return ResponseDTO.<CategoryDTO>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Category not found for update")
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<CategoryDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to update category")
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
                     .build();
         }
     }
@@ -129,18 +128,18 @@ public class CategoryServiceImpl implements CategoryService {
 
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Category deleted " + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.DELETE_SUCCESS_MESSAGE)
                         .build();
             } else {
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Category not found for deletion")
+                        .message(AppConstants.DELETE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<Void>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to delete category")
+                    .message(AppConstants.DELETE_FAILED_MESSAGE)
                     .build();
         }
     }
