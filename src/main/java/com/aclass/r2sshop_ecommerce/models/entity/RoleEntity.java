@@ -2,16 +2,14 @@ package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -27,8 +25,7 @@ public class RoleEntity {
 
     @Column(name = "description")
     private String description;
-  
-    @OneToMany(mappedBy = "role")
-    @JsonBackReference
-    private List<RoleUserEntity> roleUserEntities;
+
+    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
+    private Set<UserEntity> userEntities = new HashSet<>();
 }
