@@ -23,7 +23,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
     private static final String[] WHITE_LIST = {
-            "/api/v1/auth/**"
+            "/api/v1/auth/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs.yaml",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/api/v1/auth/register",
+            "/api/v1/auth/authentication"
     };
 
     private final UserDetailsService userDetailsService;
@@ -58,8 +64,8 @@ public class SecurityConfig {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/", "/home","/api/v1/auth/register", "/api/v1/auth/authentication").permitAll()
-                        .anyRequest().authenticated())
+                    .requestMatchers(WHITE_LIST).permitAll()
+                    .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);
