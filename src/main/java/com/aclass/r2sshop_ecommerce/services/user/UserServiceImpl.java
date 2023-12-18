@@ -9,8 +9,10 @@ import com.aclass.r2sshop_ecommerce.models.dto.common.LoginResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.token.AccessTokenGenerated;
 import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.RoleEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
+import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
 import com.aclass.r2sshop_ecommerce.repositories.RoleRepository;
 import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -30,15 +32,17 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final CartRepository cartRepository;
     private final AuthenticationManager authenticationManager;
     private final TokenUtil tokenUtil;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, AuthenticationManager authenticationManager, TokenUtil tokenUtil, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, CartRepository cartRepository, AuthenticationManager authenticationManager, TokenUtil tokenUtil, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.cartRepository = cartRepository;
         this.authenticationManager = authenticationManager;
         this.tokenUtil = tokenUtil;
         this.modelMapper = modelMapper;
@@ -109,6 +113,13 @@ public class UserServiceImpl implements UserService{
 
         UserEntity savedUser = userRepository.save(newUserEntity);
         UserDTO savedUserDto = modelMapper.map(savedUser, UserDTO.class);
+
+        CartEntity newCart = new CartEntity();
+        newCart.setUser(newUserEntity);
+
+        Date createdDate = new Date();
+        newCart.setCreateDate(createdDate);
+        cartRepository.save(newCart);
 
         ResponseDTO<UserDTO> responseDTO = new ResponseDTO<>();
         responseDTO.setStatus(AppConstants.SUCCESS_STATUS);

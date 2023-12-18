@@ -1,18 +1,17 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -28,7 +27,7 @@ public class CartEntity {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIgnore
     private UserEntity user;
 
     @OneToMany(mappedBy = "cart")
