@@ -3,6 +3,7 @@ package com.aclass.r2sshop_ecommerce.services.product;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.exceptions.ProductNotFoundException;
 import com.aclass.r2sshop_ecommerce.models.dto.ProductDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.RoleDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.ProductEntity;
 import com.aclass.r2sshop_ecommerce.repositories.ProductRepository;
@@ -83,8 +84,8 @@ public class ProductServiceImpl implements ProductService {
 
         if (list.isEmpty()) {
             return ResponseDTO.<List<ProductDTO>>builder()
-                    .status(String.valueOf(HttpStatus.NOT_FOUND)) // Đây có thể là nguyên nhân của lỗi
-                    .message("Not found list products")
+                    .status(String.valueOf(HttpStatus.NOT_FOUND))
+                    .message(AppConstants.FOUND_LIST_MESSAGE)
                     .build();
         }
 
@@ -94,7 +95,7 @@ public class ProductServiceImpl implements ProductService {
 
         return ResponseDTO.<List<ProductDTO>>builder()
                 .status(String.valueOf(HttpStatus.OK))
-                .message("Found list products")
+                .message(AppConstants.FOUND_LIST_MESSAGE)
                 .data(listRes)
                 .build();
     }
@@ -107,33 +108,35 @@ public class ProductServiceImpl implements ProductService {
             ProductDTO productDTO = modelMapper.map(optionalProduct.get(), ProductDTO.class);
             return ResponseDTO.<ProductDTO>builder()
                     .status(String.valueOf(HttpStatus.OK.value()))
-                    .message("Product found")
+                    .message(AppConstants.FOUND_MESSAGE)
                     .data(productDTO)
                     .build();
         } else {
             return ResponseDTO.<ProductDTO>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message("Product not found")
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
                     .build();
         }
     }
 
     @Override
     public ResponseDTO<ProductDTO> create(ProductDTO productDTO) {
-        // Map the ProductDTO to ProductEntity
-        ProductEntity productEntity = modelMapper.map(productDTO, ProductEntity.class);
+        try {
+            ProductEntity productEntity = modelMapper.map(productDTO, ProductEntity.class);
+            ProductEntity savedProduct = productRepository.save(productEntity);
+            ProductDTO savedProductDTO = modelMapper.map(savedProduct, ProductDTO.class);
 
-        // Save the entity
-        ProductEntity savedProduct = productRepository.save(productEntity);
-
-        // Map the saved entity back to DTO
-        ProductDTO savedProductDTO = modelMapper.map(savedProduct, ProductDTO.class);
-
-        return ResponseDTO.<ProductDTO>builder()
-                .status(String.valueOf(HttpStatus.CREATED.value()))
-                .message("Product created " + AppConstants.SUCCESS_MESSAGE)
-                .data(savedProductDTO)
-                .build();
+            return ResponseDTO.<ProductDTO>builder()
+                    .status(String.valueOf(HttpStatus.CREATED.value()))
+                    .message("Product created " + AppConstants.SUCCESS_MESSAGE)
+                    .data(savedProductDTO)
+                    .build();
+        }catch (Exception e) {
+            return ResponseDTO.<ProductDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.CREATE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
@@ -146,28 +149,26 @@ public class ProductServiceImpl implements ProductService {
 
                 // Update the fields with new values from updatedProductDTO
                 existingProduct.setName(productDTO.getName());
-                // Add more fields as needed
 
-                // Save the updated product
                 ProductEntity updatedProduct = productRepository.save(existingProduct);
 
                 ProductDTO updatedProductDTO = modelMapper.map(updatedProduct, ProductDTO.class);
 
                 return ResponseDTO.<ProductDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Product updated" + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
                         .data(updatedProductDTO)
                         .build();
             } else {
                 return ResponseDTO.<ProductDTO>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Product not found for update")
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<ProductDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to update product")
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
                     .build();
         }
     }
@@ -182,18 +183,18 @@ public class ProductServiceImpl implements ProductService {
 
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Product deleted " + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.DELETE_SUCCESS_MESSAGE)
                         .build();
             } else {
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Product not found for deletion")
+                        .message(AppConstants.DELETE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<Void>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to delete product")
+                    .message(AppConstants.DELETE_FAILED_MESSAGE)
                     .build();
         }
     }
