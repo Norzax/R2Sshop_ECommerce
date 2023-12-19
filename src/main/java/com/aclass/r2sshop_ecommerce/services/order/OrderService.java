@@ -1,6 +1,8 @@
 package com.aclass.r2sshop_ecommerce.services.order;
 
-import com.aclass.r2sshop_ecommerce.services.Service;
+import com.aclass.r2sshop_ecommerce.services.IService;
+import org.springframework.stereotype.Service;
 
-public interface OrderService extends Service {
+@Service
+public interface OrderService extends IService {
 }
