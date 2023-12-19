@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequestDTO<R> {
+public class RegisterRequestDTO {
     private String username;
     private String password;
     private String address;
