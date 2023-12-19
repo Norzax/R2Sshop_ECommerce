@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +21,7 @@ public class CartLineItemEntity {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false, referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIgnore
     private CartEntity cart;
 
     @ManyToOne
@@ -40,6 +41,7 @@ public class CartLineItemEntity {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false, referencedColumnName = "id")
     @JsonBackReference
