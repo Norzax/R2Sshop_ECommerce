@@ -27,28 +27,28 @@ public class CategoryController {
     @GetMapping("/all")
     public ResponseEntity<ResponseDTO<List<CategoryDTO>>> findAll() {
         ResponseDTO<List<CategoryDTO>> response = categoryService.findAll();
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/findById/{id}")
     public ResponseEntity<ResponseDTO<CategoryDTO>> findById(@PathVariable Long id) {
         ResponseDTO<CategoryDTO> response = categoryService.findById(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDTO<CategoryDTO>> create(@Valid @RequestBody CategoryDTO categoryDTO) {
         ResponseDTO<CategoryDTO> response = categoryService.create(categoryDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<ResponseDTO<CategoryDTO>> update(@PathVariable Long id, @Valid @RequestBody CategoryDTO updatedCategoryDTO) {
         ResponseDTO<CategoryDTO> response = categoryService.update(id, updatedCategoryDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 

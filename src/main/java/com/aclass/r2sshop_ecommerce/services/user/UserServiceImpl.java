@@ -3,6 +3,7 @@ package com.aclass.r2sshop_ecommerce.services.user;
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.exceptions.UserException;
+import com.aclass.r2sshop_ecommerce.models.dto.RoleDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
@@ -17,6 +18,7 @@ import com.aclass.r2sshop_ecommerce.repositories.RoleRepository;
 import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -184,22 +186,113 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public ResponseDTO<List<UserDTO>> findAll() {
-        return null;
+        List<UserEntity> list = userRepository.findAll();
+
+        if (list.isEmpty()) {
+            return ResponseDTO.<List<UserDTO>>builder()
+                    .status(String.valueOf(HttpStatus.NOT_FOUND))
+                    .message(AppConstants.NOT_FOUND_LIST_MESSAGE)
+                    .build();
+        }
+
+        List<UserDTO> listRes = list.stream()
+                .map(userEntity -> modelMapper.map(userEntity, UserDTO.class))
+                .collect(Collectors.toList());
+
+        return ResponseDTO.<List<UserDTO>>builder()
+                .status(String.valueOf(HttpStatus.OK))
+                .message(AppConstants.FOUND_LIST_MESSAGE)
+                .data(listRes)
+                .build();
     }
 
     @Override
     public ResponseDTO<UserDTO> findById(Long id) {
-        return null;
+        Optional<UserEntity> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isPresent()) {
+            UserDTO userDTO = modelMapper.map(optionalUser.get(), UserDTO.class);
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.OK.value()))
+                    .message(AppConstants.FOUND_MESSAGE)
+                    .data(userDTO)
+                    .build();
+        } else {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
     public ResponseDTO<UserDTO> update(Long id, UserDTO dto) {
-        return null;
+        try {
+            Optional<UserEntity> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isPresent()) {
+                UserEntity existingUser = optionalUser.get();
+                existingUser.setFullName(dto.getFullName());
+                existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+                existingUser.setEmail(dto.getEmail());
+
+                List<AddressEntity> addressEntities = new ArrayList<>();
+
+                if (dto.getAddressDTOList() != null) {
+                    addressEntities = dto.getAddressDTOList()
+                            .stream()
+                            .map(addressDto -> modelMapper.map(addressDto, AddressEntity.class))
+                            .collect(Collectors.toList());
+                }
+                existingUser.setAddressEntities(addressEntities);
+
+                UserEntity updatedUser = userRepository.save(existingUser);
+
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
+                        .data(modelMapper.map(updatedUser, UserDTO.class))
+                        .build();
+            } else {
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
     public ResponseDTO<Void> delete(Long id) {
-        return null;
+        try {
+            Optional<UserEntity> optionalUser = userRepository.findById(id);
+
+            if (optionalUser.isPresent()) {
+                cartRepository.deleteById(id);
+                addressRepository.deleteById(id);
+                userRepository.deleteById(id);
+
+                return ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message(AppConstants.DELETE_SUCCESS_MESSAGE)
+                        .build();
+            } else {
+                return ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message(AppConstants.DELETE_NOT_FOUND_MESSAGE)
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<Void>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.DELETE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 }
 

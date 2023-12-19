@@ -13,5 +13,4 @@ public class ResponseDTO<T> {
     private String status;
     private T data;
     private String message;
-    private Map<String, Object> metadata;
 }

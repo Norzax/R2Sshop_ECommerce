@@ -27,42 +27,42 @@ public class VariantController {
     @GetMapping("/all")
     public ResponseEntity<ResponseDTO<List<VariantProductDTO>>> findAll() {
         ResponseDTO<List<VariantProductDTO>> response = variantProductService.findAll();
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDTO<VariantProductDTO>> findById(@PathVariable Long id) {
         ResponseDTO<VariantProductDTO> response = variantProductService.findById(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDTO<VariantProductDTO>> create(@Valid @RequestBody VariantProductDTO variantProductDTO) {
         ResponseDTO<VariantProductDTO> response = variantProductService.create(variantProductDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<ResponseDTO<VariantProductDTO>> update(@PathVariable Long id, @Valid @RequestBody VariantProductDTO updateVariantProductDTO) {
         ResponseDTO<VariantProductDTO> response = variantProductService.update(id, updateVariantProductDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
         ResponseDTO<Void> response = variantProductService.delete(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/product/{productId}")
     public ResponseEntity<ResponseDTO<List<VariantProductDTO>>> getVariantByProductId(@PathVariable Long productId) {
         ResponseDTO<List<VariantProductDTO>> response = variantProductService.getVariantProductsByProductId(productId);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 }
