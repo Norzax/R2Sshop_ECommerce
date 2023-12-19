@@ -32,35 +32,35 @@ public class ProductController {
     @GetMapping("/all")
     public ResponseEntity<ResponseDTO<List<ProductDTO>>> findAll() {
         ResponseDTO<List<ProductDTO>> response = productService.findAll();
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/findById/{id}")
     public ResponseEntity<ResponseDTO<ProductDTO>> findById(@PathVariable Long id) {
         ResponseDTO<ProductDTO> response = productService.findById(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDTO<ProductDTO>> create(@Valid @RequestBody ProductDTO productDTO) {
         ResponseDTO<ProductDTO> response = productService.create(productDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<ResponseDTO<ProductDTO>> update(@PathVariable Long id, @Validated @RequestBody ProductDTO updatedProductDTO) {
         ResponseDTO<ProductDTO> response = productService.update(id, updatedProductDTO);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
         ResponseDTO<Void> response = productService.delete(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
@@ -75,7 +75,7 @@ public class ProductController {
 
         PagingResponse<ProductDTO> response = productService.findProductsByCategoryId(category_id, request);
 
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
 
         return ResponseEntity.status(httpStatus).body(response);
     }

@@ -30,6 +30,6 @@ public class CartEntity {
     @JsonIgnore
     private UserEntity user;
 
-    @OneToMany(mappedBy = "cart")
+    @OneToMany(mappedBy = "cart", fetch = FetchType.EAGER)
     private List<CartLineItemEntity> cartLineItemEntities;
 }

@@ -29,14 +29,14 @@ public class CartController {
     @GetMapping("/all")
     public ResponseEntity<ResponseDTO<List<CartDTO>>> findAll() {
         ResponseDTO<List<CartDTO>> response = cartService.findAll();
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDTO<CartDTO>> findById(@PathVariable Long id) {
         ResponseDTO<CartDTO> response = cartService.findById(id);
-        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
@@ -49,13 +49,13 @@ public class CartController {
     @PutMapping("/update/{id}")
     public ResponseEntity<ResponseDTO<CartDTO>> update(@PathVariable Long id, @Valid @RequestBody CartDTO updateCartDTO) {
         ResponseDTO<CartDTO> response = cartService.update(id, updateCartDTO);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
         ResponseDTO<Void> response = cartService.delete(id);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
 

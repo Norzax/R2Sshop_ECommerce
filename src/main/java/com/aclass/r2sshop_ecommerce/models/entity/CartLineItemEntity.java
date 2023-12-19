@@ -21,7 +21,7 @@ public class CartLineItemEntity {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false, referencedColumnName = "id")
-    @JsonIgnore
+    @JsonBackReference
     private CartEntity cart;
 
     @ManyToOne
