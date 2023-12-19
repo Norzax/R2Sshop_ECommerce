@@ -60,7 +60,7 @@ public class VariantProductServiceImpl implements VariantProductService {
         if (list.isEmpty()) {
             return ResponseDTO.<List<VariantProductDTO>>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message("Not found list variant products")
+                    .message(AppConstants.NOT_FOUND_LIST_MESSAGE)
                     .build();
         }
 
@@ -70,7 +70,7 @@ public class VariantProductServiceImpl implements VariantProductService {
 
         return ResponseDTO.<List<VariantProductDTO>>builder()
                 .status(String.valueOf(HttpStatus.OK.value()))
-                .message("Found list variant products")
+                .message(AppConstants.FOUND_LIST_MESSAGE)
                 .data(listRes)
                 .build();
     }
@@ -83,33 +83,35 @@ public class VariantProductServiceImpl implements VariantProductService {
             VariantProductDTO variantProductDTO = modelMapper.map(optionalVariantProduct.get(), VariantProductDTO.class);
             return ResponseDTO.<VariantProductDTO>builder()
                     .status(String.valueOf(HttpStatus.OK.value()))
-                    .message("Variant product found")
+                    .message(AppConstants.FOUND_MESSAGE)
                     .data(variantProductDTO)
                     .build();
         } else {
             return ResponseDTO.<VariantProductDTO>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message("Variant product not found")
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
                     .build();
         }
     }
 
     @Override
     public ResponseDTO<VariantProductDTO> create(VariantProductDTO variantProductDTO) {
-        // Map the VariantProductDTO to VariantProductEntity
-        VariantProductEntity variantProductEntity = modelMapper.map(variantProductDTO, VariantProductEntity.class);
+        try {
+            VariantProductEntity variantProductEntity = modelMapper.map(variantProductDTO, VariantProductEntity.class);
+            VariantProductEntity savedVariantProduct = variantProductRepository.save(variantProductEntity);
+            VariantProductDTO savedVariantProductDTO = modelMapper.map(savedVariantProduct, VariantProductDTO.class);
 
-        // Save the entity
-        VariantProductEntity savedVariantProduct = variantProductRepository.save(variantProductEntity);
-
-        // Map the saved entity back to DTO
-        VariantProductDTO savedVariantProductDTO = modelMapper.map(savedVariantProduct, VariantProductDTO.class);
-
-        return ResponseDTO.<VariantProductDTO>builder()
-                .status(String.valueOf(HttpStatus.CREATED.value()))
-                .message("Variant product created " + AppConstants.SUCCESS_MESSAGE)
-                .data(savedVariantProductDTO)
-                .build();
+            return ResponseDTO.<VariantProductDTO>builder()
+                    .status(String.valueOf(HttpStatus.CREATED.value()))
+                    .message(AppConstants.CREATE_SUCCESS_MESSAGE)
+                    .data(savedVariantProductDTO)
+                    .build();
+        }catch (Exception e) {
+            return ResponseDTO.<VariantProductDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.CREATE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
@@ -133,19 +135,19 @@ public class VariantProductServiceImpl implements VariantProductService {
 
                 return ResponseDTO.<VariantProductDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Variant product updated " + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
                         .data(updatedVariantProductDTO)
                         .build();
             } else {
                 return ResponseDTO.<VariantProductDTO>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Variant product not found for update")
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<VariantProductDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to update variant product")
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
                     .build();
         }
     }
@@ -160,18 +162,18 @@ public class VariantProductServiceImpl implements VariantProductService {
 
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Variant product deleted " + AppConstants.SUCCESS_MESSAGE)
+                        .message(AppConstants.DELETE_SUCCESS_MESSAGE)
                         .build();
             } else {
                 return ResponseDTO.<Void>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message("Variant product not found for deletion")
+                        .message(AppConstants.DELETE_NOT_FOUND_MESSAGE)
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<Void>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message("Failed to delete variant product")
+                    .message(AppConstants.DELETE_FAILED_MESSAGE)
                     .build();
         }
     }

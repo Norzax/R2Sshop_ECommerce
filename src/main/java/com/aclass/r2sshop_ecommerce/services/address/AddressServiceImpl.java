@@ -2,7 +2,6 @@ package com.aclass.r2sshop_ecommerce.services.address;
 
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
-import com.aclass.r2sshop_ecommerce.models.dto.CategoryDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
 import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;

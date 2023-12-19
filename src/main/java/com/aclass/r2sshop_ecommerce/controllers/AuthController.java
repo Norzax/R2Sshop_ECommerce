@@ -4,6 +4,7 @@ import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.LoginResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.user.UserServiceImpl;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {

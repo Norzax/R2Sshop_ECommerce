@@ -12,11 +12,18 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 
-    @Query("SELECT COUNT(p) FROM ProductEntity p WHERE p.category.id = :categoryId")
-    long countProductsByCategoryId(@Param("categoryId") Long categoryId);
+    @Query(nativeQuery = true,
+            value = "select * from product p where p.category_id = :categoryId order by p.id asc limit :pageSize offset :startIndex"
+    )
+    List<ProductEntity> searchOrderByCategoryIdAsc(@Param("categoryId") Long categoryId, @Param("pageSize") int pageSize, @Param("startIndex") int startIndex);
 
-    @Query("SELECT p FROM ProductEntity p WHERE p.category.id = ?1")
-    List<ProductEntity> findProductsByCategoryIdWithPaging(Long categoryId, int startIndex, int pageSize);
+    @Query(nativeQuery = true,
+            value = "select * from product p where p.category_id = :categoryId order by p.id desc limit :pageSize offset :startIndex "
+    )
+    List<ProductEntity> searchOrderByCategoryIdDesc(@Param("categoryId") Long categoryId, @Param("pageSize") int pageSize, @Param("startIndex") int startIndex);
+
+    @Query(nativeQuery = true, value = "select count(1) from product")
+    int getTotalRecordSearch();
 
     @Query("SELECT p FROM ProductEntity p LEFT JOIN FETCH p.variantProductEntities WHERE p.id = :productId")
     Optional<ProductEntity> findProductWithVariantsById(@Param("productId") Long productId);
