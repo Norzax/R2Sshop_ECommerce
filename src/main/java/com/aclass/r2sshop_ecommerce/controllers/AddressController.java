@@ -4,6 +4,7 @@ import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.address.AddressService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@Tag(name = "Address Controller" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/address")
 public class AddressController {
