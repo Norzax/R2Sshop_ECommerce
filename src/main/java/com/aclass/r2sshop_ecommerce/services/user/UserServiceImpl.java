@@ -81,6 +81,16 @@ public class UserServiceImpl implements UserService{
     @Override
     public ResponseDTO<RegisterResponseDTO> register(RegisterRequestDTO userDto) {
         ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
+        Optional<UserEntity> existingUser = userRepository.findByUsername(userDto.getUsername());
+
+        if(existingUser.isPresent()){
+            return ResponseDTO.<RegisterResponseDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
+                    .message(AppConstants.USERNAME_EXIST_MESSAGE)
+                    .data(null)
+                    .build();
+        }
+
 
         UserEntity newUserEntity = new UserEntity();
         newUserEntity.setUsername(userDto.getUsername());
@@ -94,9 +104,16 @@ public class UserServiceImpl implements UserService{
             roles.add(defaultRole);
             newUserEntity.setRoles(roles);
         } else {
-            responseDTO.setStatus(AppConstants.ERROR_STATUS);
-            responseDTO.setMessage("Default role not found");
-            return responseDTO;
+            if (defaultRole == null) {
+                defaultRole = new RoleEntity();
+                defaultRole.setName("USER");
+                defaultRole.setDescription("Default role for regular users");
+                roleRepository.save(defaultRole);
+
+                Set<RoleEntity> roles = new HashSet<>();
+                roles.add(defaultRole);
+                newUserEntity.setRoles(roles);
+            }
         }
 
         try {
@@ -132,6 +149,15 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public ResponseDTO<UserDTO> create(UserDTO userDto) {
+        Optional<UserEntity> existingUser = userRepository.findByUsername(userDto.getUsername());
+        if(existingUser.isPresent()){
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
+                    .message(AppConstants.USERNAME_EXIST_MESSAGE)
+                    .data(userDto)
+                    .build();
+        }
+
         UserEntity newUserEntity = new UserEntity();
         newUserEntity.setUsername(userDto.getUsername());
         newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));

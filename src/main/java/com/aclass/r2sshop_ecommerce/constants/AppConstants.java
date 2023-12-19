@@ -20,6 +20,7 @@ public class AppConstants {
     public static final String DELETE_SUCCESS_MESSAGE = "Delete successfully";
     public static final String DELETE_NOT_FOUND_MESSAGE = "Not found for deletion";
     public static final String DELETE_FAILED_MESSAGE = "Delete failed";
+    public static final String USERNAME_EXIST_MESSAGE = "Can not create account, username existed";
 
 
 
