@@ -5,13 +5,13 @@ import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.exceptions.UserException;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
-import com.aclass.r2sshop_ecommerce.models.dto.common.LoginResponseDTO;
-import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.common.*;
 import com.aclass.r2sshop_ecommerce.models.dto.token.AccessTokenGenerated;
 import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.RoleEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
+import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;
 import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
 import com.aclass.r2sshop_ecommerce.repositories.RoleRepository;
 import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
@@ -33,16 +33,18 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CartRepository cartRepository;
+    private final AddressRepository addressRepository;
     private final AuthenticationManager authenticationManager;
     private final TokenUtil tokenUtil;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, CartRepository cartRepository, AuthenticationManager authenticationManager, TokenUtil tokenUtil, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, CartRepository cartRepository, AddressRepository addressRepository, AuthenticationManager authenticationManager, TokenUtil tokenUtil, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.cartRepository = cartRepository;
+        this.addressRepository = addressRepository;
         this.authenticationManager = authenticationManager;
         this.tokenUtil = tokenUtil;
         this.modelMapper = modelMapper;
@@ -50,7 +52,7 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public ResponseDTO<LoginResponseDTO> login(UserDTO userDto) {
+    public ResponseDTO<LoginResponseDTO> login(LoginRequestDTO userDto) {
         try{
             var authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
             if (authentication.isAuthenticated()){
@@ -72,6 +74,58 @@ public class UserServiceImpl implements UserService{
         } catch (AuthenticationException e ){
             throw new UserException(e.getMessage());
         }
+    }
+
+    @Override
+    public ResponseDTO<RegisterResponseDTO> register(RegisterRequestDTO userDto) {
+        ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
+
+        UserEntity newUserEntity = new UserEntity();
+        newUserEntity.setUsername(userDto.getUsername());
+        newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        newUserEntity.setEmail(userDto.getEmail());
+        newUserEntity.setFullName(userDto.getFullName());
+
+        RoleEntity defaultRole = roleRepository.findByName("USER");
+        if (defaultRole != null) {
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
+        } else {
+            responseDTO.setStatus(AppConstants.ERROR_STATUS);
+            responseDTO.setMessage("Default role not found");
+            return responseDTO;
+        }
+
+        try {
+            newUserEntity = userRepository.save(newUserEntity);
+
+            CartEntity newCart = new CartEntity();
+            newCart.setUser(newUserEntity);
+            Date createdDate = new Date();
+            newCart.setCreateDate(createdDate);
+            cartRepository.save(newCart);
+
+            AddressEntity newAddress = new AddressEntity();
+            newAddress.setAddress(userDto.getAddress());
+            newAddress.setUser(newUserEntity);
+            addressRepository.save(newAddress);
+
+            RegisterResponseDTO registerResponseDTO = new RegisterResponseDTO();
+            registerResponseDTO.setAddress(userDto.getAddress());
+            registerResponseDTO.setUsername(userDto.getUsername());
+            registerResponseDTO.setFullName(userDto.getFullName());
+            registerResponseDTO.setEmail(userDto.getEmail());
+
+            responseDTO.setStatus(AppConstants.SUCCESS_STATUS);
+            responseDTO.setData(registerResponseDTO);
+            responseDTO.setMessage(AppConstants.SUCCESS_MESSAGE);
+        } catch (Exception e) {
+            responseDTO.setStatus(AppConstants.ERROR_STATUS);
+            responseDTO.setMessage("Registration failed: " + e.getMessage());
+        }
+
+        return responseDTO;
     }
 
     @Override

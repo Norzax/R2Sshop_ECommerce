@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +25,7 @@ public class AddressEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIgnore
     private UserEntity user;
 }
 
