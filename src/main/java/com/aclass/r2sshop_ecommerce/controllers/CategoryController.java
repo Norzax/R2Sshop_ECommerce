@@ -3,6 +3,8 @@ package com.aclass.r2sshop_ecommerce.controllers;
 import com.aclass.r2sshop_ecommerce.models.dto.CategoryDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.category.CategoryService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@Tag(name = "Category Controller" )
+@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/category")
 public class CategoryController {
 
