@@ -1,6 +1,8 @@
 package com.aclass.r2sshop_ecommerce.controllers;
 
 import com.aclass.r2sshop_ecommerce.models.dto.ProductDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.common.PagingRequest;
+import com.aclass.r2sshop_ecommerce.models.dto.common.PagingResponse;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.product.ProductService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -62,30 +64,20 @@ public class ProductController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<ResponseDTO<List<ProductDTO>>> getProductsByCategoryId(
-            @PathVariable Long categoryId,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize
-    ) {
-        try {
-            ResponseDTO<List<ProductDTO>> responseDTO = productService.findProductsByCategoryId(categoryId, page, pageSize);
+    @GetMapping("/category/{category_id}/{page}/{pageSize}")
+    public ResponseEntity<PagingResponse<ProductDTO>> getProductsByCategoryId(
+            @PathVariable Long category_id,
+            @PathVariable String page,
+            @PathVariable String pageSize) {
+        PagingRequest request = new PagingRequest();
+        request.setPage(Integer.parseInt(page));
+        request.setPageSize(Integer.parseInt(pageSize));
 
-            return ResponseEntity.ok(
-                    ResponseDTO.<List<ProductDTO>>builder()
-                            .status(responseDTO.getStatus())
-                            .message(responseDTO.getMessage())
-                            .data(responseDTO.getData())
-                            .build()
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ResponseDTO.<List<ProductDTO>>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message("Failed to retrieve products")
-                            .build()
-                    );
-        }
+        PagingResponse<ProductDTO> response = productService.findProductsByCategoryId(category_id, request);
+
+        HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/getProductById/{id}")

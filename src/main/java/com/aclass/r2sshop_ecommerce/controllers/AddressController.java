@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
 @Tag(name = "Address Controller" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/address")
