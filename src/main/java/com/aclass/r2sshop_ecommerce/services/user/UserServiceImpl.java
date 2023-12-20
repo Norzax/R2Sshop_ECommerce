@@ -3,7 +3,6 @@ package com.aclass.r2sshop_ecommerce.services.user;
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.exceptions.UserException;
-import com.aclass.r2sshop_ecommerce.models.dto.RoleDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
@@ -299,8 +298,8 @@ public class UserServiceImpl implements UserService{
             Optional<UserEntity> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                cartRepository.deleteById(id);
-                addressRepository.deleteById(id);
+                cartRepository.deleteById(cartRepository.findCartEntityByUser_Id(id).getId());
+                addressRepository.deleteById(addressRepository.findAddressEntityByUser_Id(id).getId());
                 userRepository.deleteById(id);
 
                 return ResponseDTO.<Void>builder()
@@ -319,6 +318,64 @@ public class UserServiceImpl implements UserService{
                     .message(AppConstants.DELETE_FAILED_MESSAGE)
                     .build();
         }
+    }
+
+    @Override
+    public ResponseDTO<RegisterResponseDTO> adminRegister(RegisterRequestDTO userDto) {
+        ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
+        Optional<UserEntity> existingUser = userRepository.findByUsername(userDto.getUsername());
+
+        if(existingUser.isPresent()){
+            return ResponseDTO.<RegisterResponseDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
+                    .message(AppConstants.USERNAME_EXIST_MESSAGE)
+                    .data(null)
+                    .build();
+        }
+
+
+        UserEntity newUserEntity = new UserEntity();
+        newUserEntity.setUsername(userDto.getUsername());
+        newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        newUserEntity.setEmail(userDto.getEmail());
+        newUserEntity.setFullName(userDto.getFullName());
+
+        RoleEntity defaultRole = roleRepository.findByName("ADMIN");
+        if (defaultRole != null) {
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
+        } else {
+            if (defaultRole == null) {
+                defaultRole = new RoleEntity();
+                defaultRole.setName("ADMIN");
+                defaultRole.setDescription("Default role for Admin");
+                roleRepository.save(defaultRole);
+
+                Set<RoleEntity> roles = new HashSet<>();
+                roles.add(defaultRole);
+                newUserEntity.setRoles(roles);
+            }
+        }
+
+        try {
+            newUserEntity = userRepository.save(newUserEntity);
+
+            RegisterResponseDTO registerResponseDTO = new RegisterResponseDTO();
+            registerResponseDTO.setAddress(userDto.getAddress());
+            registerResponseDTO.setUsername(userDto.getUsername());
+            registerResponseDTO.setFullName(userDto.getFullName());
+            registerResponseDTO.setEmail(userDto.getEmail());
+
+            responseDTO.setStatus(AppConstants.SUCCESS_STATUS);
+            responseDTO.setData(registerResponseDTO);
+            responseDTO.setMessage(AppConstants.SUCCESS_MESSAGE);
+        } catch (Exception e) {
+            responseDTO.setStatus(AppConstants.ERROR_STATUS);
+            responseDTO.setMessage("Registration failed: " + e.getMessage());
+        }
+
+        return responseDTO;
     }
 }
 
