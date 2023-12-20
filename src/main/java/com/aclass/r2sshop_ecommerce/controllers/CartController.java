@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @Tag(name = "Cart Controller" )
 @SecurityRequirement(name = "bearerAuth")
+@RequestMapping("/api/v1/cart")
 public class CartController {
     private final CartService cartService;
 
