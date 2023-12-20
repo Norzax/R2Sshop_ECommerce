@@ -22,8 +22,8 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     )
     List<ProductEntity> searchOrderByCategoryIdDesc(@Param("categoryId") Long categoryId, @Param("pageSize") int pageSize, @Param("startIndex") int startIndex);
 
-    @Query(nativeQuery = true, value = "select count(1) from product")
-    int getTotalRecordSearch();
+    @Query(nativeQuery = true, value = "select count(1) from product where category_id = :categoryId")
+    int getTotalRecordSearch(Long categoryId);
 
     @Query("SELECT p FROM ProductEntity p LEFT JOIN FETCH p.variantProductEntities WHERE p.id = :productId")
     Optional<ProductEntity> findProductWithVariantsById(@Param("productId") Long productId);

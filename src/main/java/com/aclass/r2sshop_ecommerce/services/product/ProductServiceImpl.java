@@ -60,8 +60,8 @@ public class ProductServiceImpl implements ProductService {
                 productEntities = productRepository.searchOrderByCategoryIdAsc(categoryId, pageSize, startIndex);
             }
 
-            int totalRecord = productRepository.getTotalRecordSearch();
-            int totalPage = (int) Math.ceil((double) totalRecord / pageSize) - 1;
+            int totalRecord = productRepository.getTotalRecordSearch(categoryId);
+            int totalPage = (int) Math.ceil((double) totalRecord / pageSize);
 
             List<ProductDTO> productDTOList = productEntities.stream()
                     .map(productEntity -> modelMapper.map(productEntity, ProductDTO.class))
