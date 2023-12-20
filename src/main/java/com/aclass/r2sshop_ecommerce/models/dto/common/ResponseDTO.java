@@ -2,7 +2,6 @@ package com.aclass.r2sshop_ecommerce.models.dto.common;
 
 import lombok.*;
 
-import java.util.Map;
 
 @Getter
 @Setter

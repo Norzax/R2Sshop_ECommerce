@@ -3,10 +3,8 @@ package com.aclass.r2sshop_ecommerce.services.cart;
 
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
-import com.aclass.r2sshop_ecommerce.models.dto.ProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.ProductEntity;
 import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,5 +93,10 @@ public class CartServiceImpl implements CartService{
                 .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
                 .message("You cannot delete cart of any user")
                 .build();
+    }
+
+    @Override
+    public CartDTO findCartByUserId(Long userId) {
+        return modelMapper.map(cartRepository.findCartEntityByUser_Id(userId), CartDTO.class);
     }
 }

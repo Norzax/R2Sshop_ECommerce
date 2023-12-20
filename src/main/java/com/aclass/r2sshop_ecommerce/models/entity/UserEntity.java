@@ -1,10 +1,7 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.mapping.Join;
 
 import java.util.ArrayList;
 import java.util.HashSet;

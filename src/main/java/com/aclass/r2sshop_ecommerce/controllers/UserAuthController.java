@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Authentication Controller")
+@Tag(name = "User Authentication Controller")
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class UserAuthController {
 
     private final UserServiceImpl userServiceImpl;
 

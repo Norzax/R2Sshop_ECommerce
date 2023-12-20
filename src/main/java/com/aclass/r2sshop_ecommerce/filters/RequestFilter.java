@@ -3,7 +3,6 @@ package com.aclass.r2sshop_ecommerce.filters;
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
