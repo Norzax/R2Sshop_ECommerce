@@ -27,10 +27,8 @@ public class UserAuthController {
         return ResponseEntity.ok(userServiceImpl.register(userDto));
     }
 
-
-    @Transactional
     @PostMapping("/authentication")
-    public ResponseEntity<ResponseDTO<LoginResponseDTO>> login(@RequestBody @Valid LoginResquestDTO userDto) {
+    public ResponseEntity<ResponseDTO<LoginResponseDTO>> login(@RequestBody @Valid LoginRequestDTO userDto) {
         return ResponseEntity.ok(userServiceImpl.login(userDto));
     }
 }

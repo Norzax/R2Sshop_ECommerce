@@ -2,7 +2,6 @@ package com.aclass.r2sshop_ecommerce.services.user;
 
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
-import com.aclass.r2sshop_ecommerce.exceptions.UserException;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
@@ -22,7 +21,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -53,10 +51,11 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public ResponseDTO<LoginResponseDTO> login(LoginResquestDTO userDto) {
-        try{
+    public ResponseDTO<LoginResponseDTO> login(LoginRequestDTO userDto) {
+        try {
             var authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
-            if (authentication.isAuthenticated()){
+
+            if (authentication.isAuthenticated()) {
                 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
                 AccessTokenGenerated accessTokenGenerated = tokenUtil.generateToken(userDetails);
                 return ResponseDTO.<LoginResponseDTO>builder()
@@ -70,10 +69,16 @@ public class UserServiceImpl implements UserService{
                                         .build()
                         ).build();
             } else {
-                throw new UsernameNotFoundException("Not found username: " + userDto.getUsername());
+                return ResponseDTO.<LoginResponseDTO>builder()
+                        .status(HttpStatus.NOT_FOUND.toString())
+                        .message("User not found")
+                        .build();
             }
-        } catch (AuthenticationException e ){
-            throw new UserException(e.getMessage());
+        } catch (AuthenticationException e) {
+            return ResponseDTO.<LoginResponseDTO>builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.toString())
+                    .message(AppConstants.ERROR_MESSAGE)
+                    .build();
         }
     }
 
