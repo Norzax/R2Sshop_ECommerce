@@ -11,6 +11,15 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
+    @Query("select distinct u from UserEntity u left join fetch u.addressEntities")
+    List<UserEntity> findAllByJoiningAddressEntity();
+
+    @Query("select u from UserEntity u left join fetch u.addressEntities where u.id = :userId")
+    UserEntity findByIdJoiningAddressEntity(@PathParam("user_id") Long userId);
+
     @Query("select u from UserEntity u where u.username = :username")
     Optional<UserEntity> findByUsername(@PathParam("username") String username);
+
+    @Query("select distinct u from UserEntity u left join fetch u.addressEntities where u.username = :username")
+    Optional<UserEntity> findByUsernameJoiningAddressEntity(@PathParam("username") String username);
 }

@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.models.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 
