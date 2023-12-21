@@ -2,6 +2,7 @@ package com.aclass.r2sshop_ecommerce.controllers;
 
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.common.UserUpdateRequestDTO;
 import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,8 +47,8 @@ public class UserController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ResponseDTO<UserDTO>> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO updatedUserDTO) {
-        ResponseDTO<UserDTO> response = userService.update(id, updatedUserDTO);
+    public ResponseEntity<ResponseDTO<UserDTO>> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateRequestDTO updatedUserDTO) {
+        ResponseDTO<UserDTO> response = userService.updateList(id, updatedUserDTO);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }

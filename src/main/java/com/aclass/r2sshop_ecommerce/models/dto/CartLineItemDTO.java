@@ -1,5 +1,6 @@
 package com.aclass.r2sshop_ecommerce.models.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,9 @@ import java.sql.Timestamp;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(name = "Cart Line Item")
 public class CartLineItemDTO {
+    @Schema(hidden = true)
     private Long id;
     private Long cartId;
     private Long variantProductId;

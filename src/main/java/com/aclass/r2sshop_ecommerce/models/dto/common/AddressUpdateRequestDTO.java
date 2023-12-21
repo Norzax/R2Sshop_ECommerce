@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.models.dto;
+package com.aclass.r2sshop_ecommerce.models.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -10,10 +10,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "Category")
-public class CategoryDTO {
-    @Schema(hidden = true)
-    private long id;
-    private String name;
-    private String description;
+@Schema(name = "Address Update Request")
+public class AddressUpdateRequestDTO {
+    private String oldAddress;
+    private String newAddress;
 }
