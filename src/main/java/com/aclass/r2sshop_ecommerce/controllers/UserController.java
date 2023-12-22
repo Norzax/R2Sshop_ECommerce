@@ -59,4 +59,19 @@ public class UserController {
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
+
+    @PutMapping("/updateInformation")
+    public ResponseEntity<ResponseDTO<UserDTO>> updateUserInformation(@Valid @RequestBody UserUpdateRequestDTO updateUserDTO) {
+        try {
+            ResponseDTO<UserDTO> response = userService.updateUserInformation(updateUserDTO);
+            HttpStatus httpStatus = HttpStatus.valueOf(Integer.parseInt(response.getStatus()));
+            return ResponseEntity.status(httpStatus).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ResponseDTO.<UserDTO>builder()
+                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                            .message("An internal server error occurred.")
+                            .build());
+        }
+    }
 }

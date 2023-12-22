@@ -22,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -124,16 +125,14 @@ public class UserServiceImpl implements UserService{
             roles.add(defaultRole);
             newUserEntity.setRoles(roles);
         } else {
-            if (defaultRole == null) {
-                defaultRole = new RoleEntity();
-                defaultRole.setName("USER");
-                defaultRole.setDescription("Default role for regular users");
-                roleRepository.save(defaultRole);
+            defaultRole = new RoleEntity();
+            defaultRole.setName("USER");
+            defaultRole.setDescription("Default role for regular users");
+            roleRepository.save(defaultRole);
 
-                Set<RoleEntity> roles = new HashSet<>();
-                roles.add(defaultRole);
-                newUserEntity.setRoles(roles);
-            }
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
         }
 
         UserEntity savedUser = userRepository.save(newUserEntity);
@@ -214,14 +213,14 @@ public class UserServiceImpl implements UserService{
                     existingUser.setFullName(dto.getFullName());
                 }
                 if(dto.getNewPassword() != null) {
-                    if(passwordEncoder.matches(dto.getOldPassword(),existingUser.getPassword()) == false){
+                    if(!passwordEncoder.matches(dto.getOldPassword(), existingUser.getPassword())){
                         return ResponseDTO.<UserDTO>builder()
                                 .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                                 .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
                                 .build();
                     }
 
-                    if(passwordEncoder.matches(dto.getNewPassword(),existingUser.getPassword()) == true){
+                    if(passwordEncoder.matches(dto.getNewPassword(), existingUser.getPassword())){
                         return ResponseDTO.<UserDTO>builder()
                                 .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                                 .message(AppConstants.USER_SAME_PASSWORD)
@@ -338,22 +337,18 @@ public class UserServiceImpl implements UserService{
             roles.add(defaultRole);
             newUserEntity.setRoles(roles);
         } else {
-            if (defaultRole == null) {
-                defaultRole = new RoleEntity();
-                roleRepository.save(defaultRole);
+            defaultRole = new RoleEntity();
+            roleRepository.save(defaultRole);
 
-                Set<RoleEntity> roles = new HashSet<>();
-                roles.add(defaultRole);
-                newUserEntity.setRoles(roles);
-            }
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
         }
 
         try {
             userRepository.save(newUserEntity);
 
-            ResponseDTO<RegisterResponseDTO> responseDTO = getRegisterResponseDTOResponseDTO(userDto);
-
-            return responseDTO;
+            return getRegisterResponseDTOResponseDTO(userDto);
         } catch (Exception e) {
             ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
             responseDTO.setStatus(AppConstants.ERROR_STATUS);
@@ -375,6 +370,86 @@ public class UserServiceImpl implements UserService{
         responseDTO.setData(registerResponseDTO);
         responseDTO.setMessage(AppConstants.SUCCESS_MESSAGE);
         return responseDTO;
+    }
+
+    @Override
+    public ResponseDTO<UserDTO> getCurrentUser() {
+        // Retrieve the currently logged-in user from the authentication context
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Map the user details to UserDTO
+        UserDTO userDTO = modelMapper.map(userDetails.getUser(), UserDTO.class);
+
+        return ResponseDTO.<UserDTO>builder()
+                .status("OK")
+                .message("User details retrieved successfully")
+                .data(userDTO)
+                .build();
+    }
+
+    @Override
+    public ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO updateUserDTO) {
+        // Retrieve the currently logged-in user from the authentication context
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        try {
+            // Update user information
+            UserEntity existingUser = userDetails.getUser();
+
+            // Update fields if provided
+            if (updateUserDTO.getFullName() != null) {
+                existingUser.setFullName(updateUserDTO.getFullName());
+            }
+
+            if (updateUserDTO.getEmail() != null) {
+                existingUser.setEmail(updateUserDTO.getEmail());
+            }
+
+            if (updateUserDTO.getOldPassword() != null && updateUserDTO.getNewPassword() != null && updateUserDTO.getConfirmNewPassword() != null) {
+                // Handle password change
+                if (!passwordEncoder.matches(updateUserDTO.getOldPassword(), existingUser.getPassword())) {
+                    return ResponseDTO.<UserDTO>builder()
+                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                            .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
+                            .build();
+                }
+
+                if (passwordEncoder.matches(updateUserDTO.getNewPassword(), existingUser.getPassword())) {
+                    return ResponseDTO.<UserDTO>builder()
+                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                            .message(AppConstants.USER_SAME_PASSWORD)
+                            .build();
+                }
+
+                if (!updateUserDTO.getNewPassword().equals(updateUserDTO.getConfirmNewPassword())) {
+                    return ResponseDTO.<UserDTO>builder()
+                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                            .message(AppConstants.USER_UPDATE_PASSWORD_NOT_SAME)
+                            .build();
+                }
+
+                existingUser.setPassword(passwordEncoder.encode(updateUserDTO.getNewPassword()));
+            }
+
+            // Handle address updates as needed
+
+            // Save the updated user
+            UserEntity updatedUser = userRepository.save(existingUser);
+
+            // Map the updated user to UserDTO
+            UserDTO updatedUserDTO = modelMapper.map(updatedUser, UserDTO.class);
+
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.OK.value()))
+                    .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
+                    .data(updatedUserDTO)
+                    .build();
+        } catch (Exception e) {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
+                    .build();
+        }
     }
 }
 

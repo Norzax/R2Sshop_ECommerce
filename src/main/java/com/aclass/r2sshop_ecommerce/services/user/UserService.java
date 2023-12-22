@@ -10,4 +10,6 @@ public interface UserService extends IService<UserDTO> {
     ResponseDTO<RegisterResponseDTO> register(RegisterRequestDTO userDTO);
     ResponseDTO<RegisterResponseDTO> adminRegister(RegisterRequestDTO userDto);
     ResponseDTO<UserDTO> updateList(Long id, UserUpdateRequestDTO dto);
+    ResponseDTO<UserDTO> getCurrentUser();
+    ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO userUpdateRequestDTO);
 }
