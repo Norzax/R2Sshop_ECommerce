@@ -7,6 +7,7 @@ public class AppConstants {
     public static final String SUCCESS_STATUS = "200";
     public static final String ERROR_STATUS = "400";
     public static final String NOT_FOUND_STATUS = "404";
+    public static final String USER_INACTIVE_STATUS = "Cannot login, this user has been deleted or blocked";
     public static final String SUCCESS_MESSAGE = "Successfully";
     public static final String ERROR_MESSAGE = "Error";
     public static final String FOUND_LIST_MESSAGE = "Found list";
@@ -27,6 +28,6 @@ public class AppConstants {
     public static final String DELETE_FAILED_MESSAGE = "Delete failed";
     public static final String USERNAME_EXIST_MESSAGE = "Can not create account, username existed";
     public static final String USER_NOT_FOUND = "User not found";
-    public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password";
+    public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password or this user has been deleted";
 
 }

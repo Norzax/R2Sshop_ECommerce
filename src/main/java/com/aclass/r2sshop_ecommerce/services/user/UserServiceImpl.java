@@ -19,9 +19,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +60,14 @@ public class UserServiceImpl implements UserService{
 
             if (authentication.isAuthenticated()) {
                 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+                if (!userDetails.isEnabled()) {
+                    return ResponseDTO.<LoginResponseDTO>builder()
+                            .status(AppConstants.NOT_FOUND_STATUS)
+                            .message(AppConstants.USER_INACTIVE_STATUS)
+                            .build();
+                }
+
                 AccessTokenGenerated accessTokenGenerated = tokenUtil.generateToken(userDetails);
                 return ResponseDTO.<LoginResponseDTO>builder()
                         .status("OK")
@@ -105,6 +115,7 @@ public class UserServiceImpl implements UserService{
         newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
         newUserEntity.setEmail(userDto.getEmail());
         newUserEntity.setFullName(userDto.getFullName());
+        newUserEntity.setStatus(true);
 
         List<AddressEntity> addressList = new ArrayList<>();
 
