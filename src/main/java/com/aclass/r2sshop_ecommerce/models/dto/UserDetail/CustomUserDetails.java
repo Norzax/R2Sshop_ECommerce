@@ -50,6 +50,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return (user.isStatus() == true || user.isStatus() == false) ? user.isStatus() : true;
     }
 }
