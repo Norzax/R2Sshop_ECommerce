@@ -1,5 +1,6 @@
 package com.aclass.r2sshop_ecommerce.configurations;
 
+import com.aclass.r2sshop_ecommerce.constants.RoleEnum;
 import com.aclass.r2sshop_ecommerce.filters.RequestFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,10 +63,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests(requests -> requests
-                    .requestMatchers(WHITE_LIST).permitAll()
-                    .requestMatchers("/api/v1/**").hasAuthority("ADMIN")
-                    .anyRequest().authenticated())
+        http.authorizeHttpRequests(authz -> authz
+                        .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasAuthority(RoleEnum.ADMIN.name())
+                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(RoleEnum.USER.name())
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);

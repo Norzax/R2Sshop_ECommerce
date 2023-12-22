@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.ProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.PagingRequest;
@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Product Controller" )
+@Tag(name = "Product For Admin Controller" )
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/products")
-public class ProductController {
+@RequestMapping("/api/v1/admin/product")
+public class ProductForAdminController {
 
     private final ProductService productService;
 
     @Autowired
-    public ProductController(ProductService productService) {
+    public ProductForAdminController(ProductService productService) {
         this.productService = productService;
     }
 
@@ -64,32 +64,20 @@ public class ProductController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/category/{category_id}/{page}/{pageSize}")
+    @GetMapping("/category/{categoryId}/{page}/{pageSize}")
     public ResponseEntity<PagingResponse<ProductDTO>> getProductsByCategoryId(
-            @PathVariable Long category_id,
+            @PathVariable Long categoryId,
             @PathVariable String page,
             @PathVariable String pageSize) {
         PagingRequest request = new PagingRequest();
         request.setPage(Integer.parseInt(page));
         request.setPageSize(Integer.parseInt(pageSize));
 
-        PagingResponse<ProductDTO> response = productService.findProductsByCategoryId(category_id, request);
+        PagingResponse<ProductDTO> response = productService.findProductsByCategoryId(categoryId, request);
 
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
 
         return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @GetMapping("/getProductById/{id}")
-    public ResponseEntity<ResponseDTO<ProductDTO>> getProductById(@PathVariable Long id) {
-        ProductDTO productDTO = productService.getProductById(id);
-        return ResponseEntity.ok(
-                ResponseDTO.<ProductDTO>builder()
-                        .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Product found")
-                        .data(productDTO)
-                        .build()
-        );
     }
 }
 

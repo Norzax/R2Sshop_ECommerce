@@ -1,8 +1,7 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 
 import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
-import com.aclass.r2sshop_ecommerce.models.dto.VariantProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.cart.CartService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Cart Controller" )
+@Tag(name = "Cart For Admin Controller" )
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/cart")
-public class CartController {
+@RequestMapping("/api/v1/admin/cart")
+public class CartForAdminController {
     private final CartService cartService;
 
     @Autowired
-    public CartController(CartService cartService) {
+    public CartForAdminController(CartService cartService) {
         this.cartService = cartService;
     }
 
@@ -57,6 +56,11 @@ public class CartController {
     public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
         ResponseDTO<Void> response = cartService.delete(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseDTO<CartDTO> findCartByUserId(@PathVariable Long userId) {
+        return cartService.findCartByUserId(userId);
     }
 }
 

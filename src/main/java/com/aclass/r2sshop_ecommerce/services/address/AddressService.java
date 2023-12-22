@@ -13,9 +13,9 @@ import java.util.List;
 @Service
 public interface AddressService extends IService<AddressDTO> {
 
-    ResponseDTO<List<AddressDTO>> getAllAddressesForLoggedInUser();
-    ResponseDTO<AddressDTO> addAddressForLoggedInUser(AddressDTO addressDTO);
+    ResponseDTO<List<AddressDTO>> findAddressesForLoggedInUser();
+    ResponseDTO<AddressDTO> createAddressForLoggedInUser(AddressDTO addressDTO);
     ResponseDTO<AddressDTO> updateAddressForLoggedInUser(Long addressId, AddressUpdateRequestDTO updateRequest);
-    ResponseDTO<Void> deleteAddress(Long addressId);
+    ResponseDTO<Void> deleteAddressForLoggedInUser(Long addressId);
 
 }

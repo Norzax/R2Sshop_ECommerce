@@ -48,7 +48,7 @@ public class VariantProductServiceImpl implements VariantProductService {
         } else {
             return ResponseDTO.<List<VariantProductDTO>>builder()
                     .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message("Product not found")
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
                     .build();
         }
     }

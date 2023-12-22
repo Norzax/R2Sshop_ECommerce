@@ -22,4 +22,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query("select distinct u from UserEntity u left join fetch u.addressEntities where u.username = :username")
     Optional<UserEntity> findByUsernameJoiningAddressEntity(@PathParam("username") String username);
+
 }

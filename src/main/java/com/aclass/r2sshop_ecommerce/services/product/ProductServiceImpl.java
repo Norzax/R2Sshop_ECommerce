@@ -30,22 +30,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTO getProductById(Long productId) {
-        Optional<ProductEntity> optionalProduct = productRepository.findById(productId);
-
-        if (optionalProduct.isPresent()) {
-            ProductEntity productEntity = optionalProduct.get();
-            return modelMapper.map(productEntity, ProductDTO.class);
-        } else {
-            try {
-                throw new ProductNotFoundException("Product not found with id: " + productId);
-            } catch (ProductNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
     public PagingResponse<ProductDTO> findProductsByCategoryId(Long categoryId, PagingRequest request) {
         try {
             int pageSize = request.getPageSize();
