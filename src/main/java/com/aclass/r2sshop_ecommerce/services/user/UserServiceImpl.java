@@ -3,14 +3,13 @@ package com.aclass.r2sshop_ecommerce.services.user;
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.CartLineItemDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
 import com.aclass.r2sshop_ecommerce.models.dto.token.AccessTokenGenerated;
-import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.RoleEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.*;
 import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;
 import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
 import com.aclass.r2sshop_ecommerce.repositories.RoleRepository;
@@ -20,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -287,7 +287,7 @@ public class UserServiceImpl implements UserService{
             Optional<UserEntity> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                cartRepository.deleteById(cartRepository.findCartEntityByUser_Id(id).getId());
+                cartRepository.deleteById(cartRepository.findCartByUserId(id).getId());
                 addressRepository.deleteById(addressRepository.findAddressEntityByUser_Id(id).getId());
                 userRepository.deleteById(id);
 
@@ -373,30 +373,59 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public ResponseDTO<UserDTO> getCurrentUser() {
-        // Retrieve the currently logged-in user from the authentication context
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public Long getCurrentUserId() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Map the user details to UserDTO
-        UserDTO userDTO = modelMapper.map(userDetails.getUser(), UserDTO.class);
+            if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
 
-        return ResponseDTO.<UserDTO>builder()
-                .status("OK")
-                .message("User details retrieved successfully")
-                .data(userDTO)
-                .build();
+                return userDetails.getUser().getId();
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public ResponseDTO<UserDTO> getInforCurrentUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+
+                UserEntity currentUserEntity = userDetails.getUser();
+
+                UserDTO currentUserDTO = modelMapper.map(currentUserEntity, UserDTO.class);
+
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message("Current user information retrieved successfully")
+                        .data(currentUserDTO)
+                        .build();
+            } else {
+                // Người dùng chưa đăng nhập
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
+                        .message("User not authenticated")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to retrieve current user information")
+                    .build();
+        }
     }
 
     @Override
     public ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO updateUserDTO) {
-        // Retrieve the currently logged-in user from the authentication context
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         try {
-            // Update user information
             UserEntity existingUser = userDetails.getUser();
 
-            // Update fields if provided
             if (updateUserDTO.getFullName() != null) {
                 existingUser.setFullName(updateUserDTO.getFullName());
             }
@@ -433,10 +462,8 @@ public class UserServiceImpl implements UserService{
 
             // Handle address updates as needed
 
-            // Save the updated user
             UserEntity updatedUser = userRepository.save(existingUser);
 
-            // Map the updated user to UserDTO
             UserDTO updatedUserDTO = modelMapper.map(updatedUser, UserDTO.class);
 
             return ResponseDTO.<UserDTO>builder()
@@ -448,6 +475,138 @@ public class UserServiceImpl implements UserService{
             return ResponseDTO.<UserDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                     .message(AppConstants.UPDATE_FAILED_MESSAGE)
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<CartDTO> getUserCart(Long userId) {
+        try {
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isPresent()) {
+                UserEntity userEntity = userOptional.get();
+
+                CartEntity userCart = userEntity.getCart();
+
+                if (userCart != null) {
+                    CartDTO userCartDTO = modelMapper.map(userCart, CartDTO.class);
+
+                    List<CartLineItemDTO> cartLineItemsDTO = userCart.getCartLineItemEntities().stream()
+                            .map(cartLineItemEntity -> modelMapper.map(cartLineItemEntity, CartLineItemDTO.class))
+                            .collect(Collectors.toList());
+
+                    userCartDTO.setCartLineItemEntities(cartLineItemsDTO);
+
+                    return ResponseDTO.<CartDTO>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("User cart retrieved successfully")
+                            .data(userCartDTO)
+                            .build();
+                } else {
+                    return ResponseDTO.<CartDTO>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User cart not found")
+                            .build();
+                }
+            } else {
+                return ResponseDTO.<CartDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<CartDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to retrieve user cart")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<Long> getUserCartId(Long userId) {
+        try {
+            Optional<UserEntity> optionalUser = userRepository.findById(userId);
+
+            if (optionalUser.isPresent()) {
+                UserEntity user = optionalUser.get();
+                CartEntity cart = user.getCart();
+
+                if (cart != null) {
+                    return ResponseDTO.<Long>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("Cart ID found successfully")
+                            .data(cart.getId())
+                            .build();
+                } else {
+                    // Người dùng không có giỏ hàng
+                    return ResponseDTO.<Long>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User does not have a cart.")
+                            .build();
+                }
+            } else {
+                // Người dùng không tồn tại
+                return ResponseDTO.<Long>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found.")
+                        .build();
+            }
+        } catch (Exception e) {
+            // Xử lý lỗi nếu có
+            return ResponseDTO.<Long>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to get user cart ID")
+                    .build();
+        }
+    }
+
+
+    @Override
+    public void updateUserCart(Long userId, CartDTO userCartDTO) {
+        try {
+            // Kiểm tra xem người dùng có tồn tại không
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isPresent()) {
+                UserEntity userEntity = userOptional.get();
+                CartEntity userCart = userEntity.getCart();
+
+                if (userCart != null) {
+                    // Cập nhật thông tin giỏ hàng từ DTO
+                    userCart.setCreateDate(userCartDTO.getCreateDate());
+
+                    // Cập nhật danh sách các CartLineItemEntities từ DTO
+                    List<CartLineItemEntity> updatedCartLineItems = userCartDTO.getCartLineItemEntities().stream()
+                            .map(dto -> modelMapper.map(dto, CartLineItemEntity.class))
+                            .collect(Collectors.toList());
+
+                    // Gán danh sách mới vào giỏ hàng
+                    userCart.setCartLineItemEntities(updatedCartLineItems);
+
+                    // Lưu cập nhật vào cơ sở dữ liệu
+                    userRepository.save(userEntity);
+
+                    ResponseDTO.<Void>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("User cart updated successfully")
+                            .build();
+                } else {
+                    ResponseDTO.<Void>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User does not have a cart.")
+                            .build();
+                }
+            } else {
+                ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found.")
+                        .build();
+            }
+        } catch (Exception e) {
+            ResponseDTO.<Void>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.INTERNAL_SERVER_ERROR)
                     .build();
         }
     }

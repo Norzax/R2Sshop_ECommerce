@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @Tag(name = "Variant Product Controller" )
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/variants")
+@RequestMapping("/api/v1/admin/variant")
 public class VariantController {
 
     private final VariantProductService variantProductService;

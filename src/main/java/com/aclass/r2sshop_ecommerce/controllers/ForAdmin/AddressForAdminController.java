@@ -1,12 +1,12 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.address.AddressService;
-import com.aclass.r2sshop_ecommerce.models.dto.common.AddressUpdateRequestDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,44 +14,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Address Controller" )
+@Tag(name = "Address For Admin Controller" )
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/address")
-public class AddressController {
+@RequestMapping("/api/v1/admin/address")
+public class AddressForAdminController {
 
     private final AddressService addressService;
 
-    public AddressController(AddressService addressService) {
+    @Autowired
+    public AddressForAdminController(AddressService addressService) {
         this.addressService = addressService;
     }
 
-    @GetMapping("/all_for_user")
-    public ResponseEntity<ResponseDTO<List<AddressDTO>>> getAllAddressesForLoggedInUser() {
-        ResponseDTO<List<AddressDTO>> response = addressService.getAllAddressesForLoggedInUser();
-        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
-        return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @PostMapping("/add_for_user")
-    public ResponseEntity<ResponseDTO<AddressDTO>> addAddressForLoggedInUser(@Valid @RequestBody AddressDTO addressDTO) {
-        ResponseDTO<AddressDTO> response = addressService.addAddressForLoggedInUser(addressDTO);
-        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value())) ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.CREATED;
-        return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @PutMapping("/update_for_user/{addressId}")
-    public ResponseEntity<ResponseDTO<AddressDTO>> updateAddressForLoggedInUser(@PathVariable Long addressId, @Valid @RequestBody AddressUpdateRequestDTO updateRequest) {
-        ResponseDTO<AddressDTO> response = addressService.updateAddressForLoggedInUser(addressId, updateRequest);
-        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
-        return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @DeleteMapping("/delete_for_user/{addressId}")
-    public ResponseEntity<ResponseDTO<Void>> deleteAddress(@PathVariable Long addressId) {
-        ResponseDTO<Void> response = addressService.deleteAddress(addressId);
-        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
-        return ResponseEntity.status(httpStatus).body(response);
-    }
 
     @GetMapping("/all")
     public ResponseEntity<ResponseDTO<List<AddressDTO>>> findAll() {
@@ -60,7 +34,7 @@ public class AddressController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/findById/{id}")
+    @GetMapping("/find-id/{id}")
     public ResponseEntity<ResponseDTO<AddressDTO>> findById(@PathVariable Long id) {
         ResponseDTO<AddressDTO> response = addressService.findById(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;

@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "User Controller")
+@Tag(name = "User For Admin Controller")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/user")
-public class UserController {
+@RequestMapping("/api/v1/admin/user")
+public class UserForAdminController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    public UserForAdminController(UserService userService) {
         this.userService = userService;
     }
 
@@ -32,7 +32,7 @@ public class UserController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/findById/{id}")
+    @GetMapping("/find-id/{id}")
     public ResponseEntity<ResponseDTO<UserDTO>> findById(@PathVariable Long id) {
         ResponseDTO<UserDTO> response = userService.findById(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
@@ -58,20 +58,5 @@ public class UserController {
         ResponseDTO<Void> response = userService.delete(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
-    }
-
-    @PutMapping("/updateInformation")
-    public ResponseEntity<ResponseDTO<UserDTO>> updateUserInformation(@Valid @RequestBody UserUpdateRequestDTO updateUserDTO) {
-        try {
-            ResponseDTO<UserDTO> response = userService.updateUserInformation(updateUserDTO);
-            HttpStatus httpStatus = HttpStatus.valueOf(Integer.parseInt(response.getStatus()));
-            return ResponseEntity.status(httpStatus).body(response);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ResponseDTO.<UserDTO>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message("An internal server error occurred.")
-                            .build());
-        }
     }
 }

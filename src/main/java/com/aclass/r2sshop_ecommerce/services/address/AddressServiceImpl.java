@@ -33,7 +33,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResponseDTO<List<AddressDTO>> getAllAddressesForLoggedInUser() {
+    public ResponseDTO<List<AddressDTO>> findAddressesForLoggedInUser() {
         try {
 
             UserEntity loggedInUser = getLoggedInUser();
@@ -58,7 +58,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResponseDTO<AddressDTO> addAddressForLoggedInUser(AddressDTO addressDTO) {
+    public ResponseDTO<AddressDTO> createAddressForLoggedInUser(AddressDTO addressDTO) {
         try {
             UserEntity loggedInUser = getLoggedInUser();
 
@@ -66,7 +66,7 @@ public class AddressServiceImpl implements AddressService {
             if (existingAddress.isPresent()) {
                 return ResponseDTO.<AddressDTO>builder()
                         .status(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-                        .message("Address already exists for the logged-in user.")
+                        .message(AppConstants.UN_AUTHORIZED_MESAGE)
                         .build();
             }
 
@@ -78,13 +78,13 @@ public class AddressServiceImpl implements AddressService {
 
             return ResponseDTO.<AddressDTO>builder()
                     .status(String.valueOf(HttpStatus.CREATED.value()))
-                    .message("Address added successfully.")
+                    .message(AppConstants.CREATE_SUCCESS_MESSAGE)
                     .data(savedAddressDTO)
                     .build();
         } catch (Exception e) {
             return ResponseDTO.<AddressDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message(AppConstants.CREATE_SUCCESS_MESSAGE)
+                    .message(AppConstants.CREATE_FAILED_MESSAGE)
                     .build();
         }
     }
@@ -100,7 +100,7 @@ public class AddressServiceImpl implements AddressService {
                 if (!address.getUser().equals(loggedInUser)) {
                     return ResponseDTO.<AddressDTO>builder()
                             .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
-                            .message("Unauthorized: Address does not belong to the logged-in user.")
+                            .message(AppConstants.UN_AUTHORIZED_MESAGE)
                             .build();
                 }
 
@@ -131,7 +131,7 @@ public class AddressServiceImpl implements AddressService {
 
 
     @Override
-    public ResponseDTO<Void> deleteAddress(Long addressId) {
+    public ResponseDTO<Void> deleteAddressForLoggedInUser(Long addressId) {
         try {
             UserEntity loggedInUser = getLoggedInUser();
 
@@ -141,7 +141,7 @@ public class AddressServiceImpl implements AddressService {
                 if (!address.getUser().equals(loggedInUser)) {
                     return ResponseDTO.<Void>builder()
                             .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
-                            .message("Unauthorized: Address does not belong to the logged-in user.")
+                            .message(AppConstants.UN_AUTHORIZED_MESAGE)
                             .build();
                 }
 
