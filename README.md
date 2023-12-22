@@ -5,6 +5,9 @@ Một ứng dụng E-Commerce được xây dựng bằng Java và Spring Boot.
 
 R2Sshop E-Commerce là một ứng dụng thương mại điện tử đơn giản được xây dựng trên nền tảng Java và Spring Boot. Ứng dụng cung cấp các tính năng cơ bản để quản lý sản phẩm, đơn hàng và người dùng.
 
+## Tài Liệu Phát Triển
+[Group A++ Documentation](https://docs.google.com/spreadsheets/d/16_YGrq3n_Cq-HTUXetFY-VTpHtURI_AUfCZu_otgRf0)
+
 ## Hướng Dẫn Cài Đặt
 
 ### Yêu Cầu

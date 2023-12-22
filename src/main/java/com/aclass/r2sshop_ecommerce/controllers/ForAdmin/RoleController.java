@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.RoleDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Role Controller")
+@Tag(name = "Role For Admin Controller")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/role")
+@RequestMapping("/api/v1/admin/role")
 public class RoleController {
 
     private final RoleService roleService;

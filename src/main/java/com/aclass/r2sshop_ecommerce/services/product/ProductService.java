@@ -11,5 +11,4 @@ import org.springframework.stereotype.Service;
 public interface ProductService extends IService<ProductDTO> {
     // Lấy danh sách sản phẩm theo id danh mục với phân trang
     PagingResponse<ProductDTO> findProductsByCategoryId(Long categoryId,PagingRequest request);
-    ProductDTO getProductById(Long productId);
 }
