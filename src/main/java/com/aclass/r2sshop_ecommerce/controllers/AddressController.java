@@ -3,6 +3,7 @@ package com.aclass.r2sshop_ecommerce.controllers;
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.services.address.AddressService;
+import com.aclass.r2sshop_ecommerce.models.dto.common.AddressUpdateRequestDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,6 +23,34 @@ public class AddressController {
 
     public AddressController(AddressService addressService) {
         this.addressService = addressService;
+    }
+
+    @GetMapping("/all_for_user")
+    public ResponseEntity<ResponseDTO<List<AddressDTO>>> getAllAddressesForLoggedInUser() {
+        ResponseDTO<List<AddressDTO>> response = addressService.getAllAddressesForLoggedInUser();
+        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @PostMapping("/add_for_user")
+    public ResponseEntity<ResponseDTO<AddressDTO>> addAddressForLoggedInUser(@Valid @RequestBody AddressDTO addressDTO) {
+        ResponseDTO<AddressDTO> response = addressService.addAddressForLoggedInUser(addressDTO);
+        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value())) ? HttpStatus.INTERNAL_SERVER_ERROR : HttpStatus.CREATED;
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @PutMapping("/update_for_user/{addressId}")
+    public ResponseEntity<ResponseDTO<AddressDTO>> updateAddressForLoggedInUser(@PathVariable Long addressId, @Valid @RequestBody AddressUpdateRequestDTO updateRequest) {
+        ResponseDTO<AddressDTO> response = addressService.updateAddressForLoggedInUser(addressId, updateRequest);
+        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
+        return ResponseEntity.status(httpStatus).body(response);
+    }
+
+    @DeleteMapping("/delete_for_user/{addressId}")
+    public ResponseEntity<ResponseDTO<Void>> deleteAddress(@PathVariable Long addressId) {
+        ResponseDTO<Void> response = addressService.deleteAddress(addressId);
+        HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
+        return ResponseEntity.status(httpStatus).body(response);
     }
 
     @GetMapping("/all")

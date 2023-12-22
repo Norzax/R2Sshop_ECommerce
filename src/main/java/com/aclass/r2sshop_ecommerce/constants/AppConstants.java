@@ -1,9 +1,12 @@
 package com.aclass.r2sshop_ecommerce.constants;
 
 public class AppConstants {
+
     private AppConstants(){
         // Do nothing
     }
+
+    public static final String INTERNAL_SERVER_ERROR = "An internal server error occurred.";
     public static final String SUCCESS_STATUS = "200";
     public static final String ERROR_STATUS = "400";
     public static final String NOT_FOUND_STATUS = "404";
