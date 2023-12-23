@@ -31,9 +31,9 @@ public class CartForUserController {
     }
 
     @PostMapping("/add-product")
-    public ResponseEntity<ResponseDTO<CartDTO>> addProductToCart(@RequestParam Long productId,
+    public ResponseEntity<ResponseDTO<CartDTO>> addProductToCart(@RequestParam Long variantProductId,
                                                                  @RequestParam int quantity) {
-        ResponseDTO<CartDTO> responseDTO = cartService.addProductToCart(productId, quantity);
+        ResponseDTO<CartDTO> responseDTO = cartService.addProductToCart(variantProductId, quantity);
         return new ResponseEntity<>(responseDTO, HttpStatus.valueOf(Integer.parseInt(responseDTO.getStatus())));
     }
 }

@@ -300,55 +300,94 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public ResponseDTO<CartDTO> addProductToCart(Long productId, int quantity) {
+    public ResponseDTO<CartDTO> addProductToCart(Long variantProductId, int quantity) {
+        // Phân tích:
+        // Khi người dùng thêm 1 sản phẩm vào giỏ hàng
+        // Kiểm tra giỏ hàng đã có sp này chưa
+        // Nếu có :
+        //      Cập nhật lại số lượng, đơn giá
+        // Nếu không :
+        //      Kiểm tra xem người dùng đã có sản phẩm trong giỏ hàng chưa ( vì nếu có sp khác trong giỏ là sẽ có orderId
+        //      khi nào đặt mua thành công mới is_delete = 1 trong cartline item , và nếu người dùng thêm 1 sp mới thì sẽ tạo orderID mới)
+        //          Nếu có:
+        //              Thêm biến thể sp này vào giỏ hàng, sử dụng orderID hiện tại
+        //          Nếu không:
+        //              Tạo một đơn hàng có orderId mới
+        // Cái này thiết kế sai ERD rồi, nếu đúng thì trong cartlineItem không có orderId, khi nào bấm mua mới có. Nếu theo ERD này mà gặp TH
+        // như shoppee, tiki.. xử lý cồng kềnh lắm
+
         try {
             Long userId = userService.getCurrentUserId();
+
             CartDTO userCartDTO = modelMapper.map(cartRepository.findCartByUserId(userId), CartDTO.class);
             Long cartId = userCartDTO.getId();
 
-            ResponseDTO<List<VariantProductDTO>> variantProductDTO = variantProductService.getVariantProductsByProductId(productId);
+            ResponseDTO<VariantProductDTO> variantProductDTO = variantProductService.findById(variantProductId);
 
             if (variantProductDTO != null && userCartDTO != null) {
-                // Kiểm tra xem sản phẩm đã tồn tại trong giỏ hàng chưa
-                CartLineItemDTO existingCartItem = userCartDTO.getCartLineItemEntities().stream()
-                        .filter(item -> item.getVariantProductId().equals(productId))
-                        .findFirst()
-                        .orElse(null);
+                // Kiểm tra xem sản phẩm đã tồn tại trong CartLineItem chưa
+                Optional<CartLineItemEntity> existingCartItem = cartLineItemRepository.getExistCartLineItem(variantProductId, cartId);
 
-                double productPrice = variantProductDTO.getData().get(0).getPrice();
-
-                if (existingCartItem != null) {
+                if (existingCartItem.isPresent()) {
                     // Nếu sản phẩm đã tồn tại, cập nhật số lượng
-                    existingCartItem.setQuantity(existingCartItem.getQuantity() + quantity);
+                    existingCartItem.get().setQuantity(existingCartItem.get().getQuantity() + quantity);
+                    double newTotalPrice = existingCartItem.get().getQuantity() * variantProductDTO.getData().getPrice();
+                    existingCartItem.get().setTotalPrice(newTotalPrice);
+
                     cartLineItemRepository.save(modelMapper.map(existingCartItem, CartLineItemEntity.class));
-
+                    return ResponseDTO.<CartDTO>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("Product added to cart successfully")
+                            .data(userCartDTO)
+                            .build();
                 } else {
-                    OrderEntity newOrder = new OrderEntity();
-                    OrderEntity getNewOrder = orderRepository.save(newOrder);
+                    if(cartLineItemRepository.getIfCartHaveItem(cartId) > 0) {
+                        ResponseDTO<VariantProductDTO> newLineVariantProductDTO = variantProductService.findById(variantProductId);
+                        CartLineItemDTO newCartItem = new CartLineItemDTO();
+                        newCartItem.setCartId(cartId);
+                        newCartItem.setVariantProductId(variantProductId);
+                        newCartItem.setQuantity(quantity);
+                        double totalPrice = newLineVariantProductDTO.getData().getPrice() * newCartItem.getQuantity();
+                        newCartItem.setTotalPrice(totalPrice);
+                        newCartItem.setOrderId(cartLineItemRepository.getExistOrderIdByCarId(cartId));
+                        newCartItem.setAddedDate(new Timestamp(System.currentTimeMillis()));
+                        newCartItem.setIsDeleted(false);
 
-                    // Nếu sản phẩm chưa tồn tại, tạo mới CartLineItemDTO
-                    CartLineItemDTO newCartItem = new CartLineItemDTO();
-                    newCartItem.setCartId(cartId); //Id của Cart mà User đang login
-                    newCartItem.setVariantProductId(productId);
-                    newCartItem.setQuantity(quantity);
-                    newCartItem.setTotalPrice(productPrice * quantity);
-                    newCartItem.setOrderId(getNewOrder.getId());
-                    newCartItem.setAddedDate(new Timestamp(System.currentTimeMillis()));
-                    newCartItem.setIsDeleted(false);
+                        userCartDTO.getCartLineItemEntities().add(newCartItem);
+                        cartLineItemRepository.save(modelMapper.map(newCartItem, CartLineItemEntity.class));
 
-                    // Thêm CartLineItemDTO vào giỏ hàng
-                    userCartDTO.getCartLineItemEntities().add(newCartItem);
-                    cartLineItemRepository.save(modelMapper.map(newCartItem, CartLineItemEntity.class));
+                        return ResponseDTO.<CartDTO>builder()
+                                .status(String.valueOf(HttpStatus.OK.value()))
+                                .message("Product added to cart successfully")
+                                .data(userCartDTO)
+                                .build();
+                    } else {
+                        OrderEntity newOrder = new OrderEntity();
+                        OrderEntity getNewOrder = orderRepository.save(newOrder);
+
+                        // Nếu sản phẩm chưa tồn tại, tạo mới CartLineItemDTO
+                        ResponseDTO<VariantProductDTO> newLineVariantProductDTO = variantProductService.findById(variantProductId);
+                        CartLineItemDTO newCartItem = new CartLineItemDTO();
+                        newCartItem.setCartId(cartId);
+                        newCartItem.setVariantProductId(variantProductId);
+                        newCartItem.setQuantity(quantity);
+                        double totalPrice = newLineVariantProductDTO.getData().getPrice() * newCartItem.getQuantity();
+                        newCartItem.setTotalPrice(totalPrice);
+                        newCartItem.setOrderId(getNewOrder.getId());
+                        newCartItem.setAddedDate(new Timestamp(System.currentTimeMillis()));
+                        newCartItem.setIsDeleted(false);
+
+                        // Thêm CartLineItemDTO vào giỏ hàng
+                        userCartDTO.getCartLineItemEntities().add(newCartItem);
+                        cartLineItemRepository.save(modelMapper.map(newCartItem, CartLineItemEntity.class));
+
+                        return ResponseDTO.<CartDTO>builder()
+                                .status(String.valueOf(HttpStatus.OK.value()))
+                                .message("Product added to cart successfully")
+                                .data(userCartDTO)
+                                .build();
+                    }
                 }
-
-                // Cập nhật giỏ hàng trong cơ sở dữ liệu
-                userService.updateUserCart(userId, userCartDTO);
-
-                return ResponseDTO.<CartDTO>builder()
-                        .status(String.valueOf(HttpStatus.OK.value()))
-                        .message("Product added to cart successfully")
-                        .data(userCartDTO)
-                        .build();
             } else {
                 return ResponseDTO.<CartDTO>builder()
                         .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
