@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Category For User Controller" )
+@Tag(name = "User Controller - Category" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/category")
 public class CategoryForUserController {

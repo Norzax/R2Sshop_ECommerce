@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Cart For Admin Controller" )
+@Tag(name = "Admin Controller - Cart" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/admin/cart")
 public class CartForAdminController {

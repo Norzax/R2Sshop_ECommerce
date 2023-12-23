@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Address For User Controller" )
+@Tag(name = "User Controller - Address" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/address")
 public class AddressForUserController {

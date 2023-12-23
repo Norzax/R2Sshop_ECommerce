@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "Order Controller" )
+@Tag(name = "User Controller - Order" )
 @SecurityRequirement(name = "bearerAuth")
 
 public class OrderController {

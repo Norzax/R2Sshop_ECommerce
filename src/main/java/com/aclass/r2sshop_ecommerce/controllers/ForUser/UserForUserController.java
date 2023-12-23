@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Tag(name = "User For User Controller")
+@Tag(name = "User Controller - User")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/user")
 public class UserForUserController {

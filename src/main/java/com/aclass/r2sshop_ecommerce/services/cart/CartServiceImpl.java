@@ -5,8 +5,12 @@ import com.aclass.r2sshop_ecommerce.models.dto.CartLineItemDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.VariantProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.CartLineItemEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.OrderEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
+import com.aclass.r2sshop_ecommerce.repositories.CartLineItemRepository;
 import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
+import com.aclass.r2sshop_ecommerce.repositories.OrderRepository;
 import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
 import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import com.aclass.r2sshop_ecommerce.services.variant_product.VariantProductService;
@@ -25,13 +29,17 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final CartLineItemRepository cartLineItemRepository;
+    private final OrderRepository orderRepository;
     private final UserService userService;
     private final VariantProductService variantProductService;
     private final ModelMapper modelMapper;
 
-    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, UserService userService, VariantProductService variantProductService, ModelMapper modelMapper) {
+    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, CartLineItemRepository cartLineItemRepository, OrderRepository orderRepository, UserService userService, VariantProductService variantProductService, ModelMapper modelMapper) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.cartLineItemRepository = cartLineItemRepository;
+        this.orderRepository = orderRepository;
         this.userService = userService;
         this.variantProductService = variantProductService;
         this.modelMapper = modelMapper;
@@ -295,8 +303,8 @@ public class CartServiceImpl implements CartService {
     public ResponseDTO<CartDTO> addProductToCart(Long productId, int quantity) {
         try {
             Long userId = userService.getCurrentUserId();
-            CartDTO userCartDTO = userService.getUserCart(userId).getData();
-            Long cartId = userService.getUserCartId(userId).getData();
+            CartDTO userCartDTO = modelMapper.map(cartRepository.findCartByUserId(userId), CartDTO.class);
+            Long cartId = userCartDTO.getId();
 
             ResponseDTO<List<VariantProductDTO>> variantProductDTO = variantProductService.getVariantProductsByProductId(productId);
 
@@ -312,18 +320,25 @@ public class CartServiceImpl implements CartService {
                 if (existingCartItem != null) {
                     // Nếu sản phẩm đã tồn tại, cập nhật số lượng
                     existingCartItem.setQuantity(existingCartItem.getQuantity() + quantity);
+                    cartLineItemRepository.save(modelMapper.map(existingCartItem, CartLineItemEntity.class));
+
                 } else {
+                    OrderEntity newOrder = new OrderEntity();
+                    OrderEntity getNewOrder = orderRepository.save(newOrder);
+
                     // Nếu sản phẩm chưa tồn tại, tạo mới CartLineItemDTO
                     CartLineItemDTO newCartItem = new CartLineItemDTO();
                     newCartItem.setCartId(cartId); //Id của Cart mà User đang login
                     newCartItem.setVariantProductId(productId);
                     newCartItem.setQuantity(quantity);
                     newCartItem.setTotalPrice(productPrice * quantity);
+                    newCartItem.setOrderId(getNewOrder.getId());
                     newCartItem.setAddedDate(new Timestamp(System.currentTimeMillis()));
                     newCartItem.setIsDeleted(false);
 
                     // Thêm CartLineItemDTO vào giỏ hàng
                     userCartDTO.getCartLineItemEntities().add(newCartItem);
+                    cartLineItemRepository.save(modelMapper.map(newCartItem, CartLineItemEntity.class));
                 }
 
                 // Cập nhật giỏ hàng trong cơ sở dữ liệu
