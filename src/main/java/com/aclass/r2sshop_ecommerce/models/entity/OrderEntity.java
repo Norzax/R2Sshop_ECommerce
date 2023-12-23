@@ -16,7 +16,6 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 public class OrderEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -30,6 +29,13 @@ public class OrderEntity {
 
     @Column(name = "total_price")
     private Double totalPrice;
+
+    @Column(name = "receiver")
+    private String receiver;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     @OneToMany(mappedBy = "order")
     private List<CartLineItemEntity> cartLineItems;
