@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "User For Admin Controller")
+@Tag(name = "Admin Controller - User")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/admin/user")
 public class UserForAdminController {

@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Tag(name = "Cart For User Controller" )
+@Tag(name = "User Controller - Cart" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/cart")
 public class CartForUserController {

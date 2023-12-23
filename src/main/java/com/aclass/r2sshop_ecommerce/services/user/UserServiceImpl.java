@@ -341,6 +341,7 @@ public class UserServiceImpl implements UserService{
         newUserEntity.setUsername(userDto.getUsername());
         newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
         newUserEntity.setEmail(userDto.getEmail());
+        newUserEntity.setStatus(true);
         newUserEntity.setFullName(userDto.getFullName());
 
         if (defaultRole != null) {
@@ -357,7 +358,15 @@ public class UserServiceImpl implements UserService{
         }
 
         try {
-            userRepository.save(newUserEntity);
+            if(defaultRole.getName().equals("USER")){
+                CartEntity newCart = new CartEntity();
+                newCart.setUser(userRepository.save(newUserEntity));
+                newCart.setCreateDate(new Date());
+                cartRepository.save(newCart);
+            }
+            else {
+                userRepository.save(newUserEntity);
+            }
 
             return getRegisterResponseDTOResponseDTO(userDto);
         } catch (Exception e) {
