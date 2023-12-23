@@ -124,8 +124,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 orderRepository.save(saved);
 
-                // chưa cập nhật lại được
-                //cartLineItemRepository.softDelete(currentOrder.get().getId());
+                cartLineItemRepository.softDelete(currentOrder.get().getId());
 
                 return ResponseDTO.<OrderResponseDTO>builder()
                         .status(AppConstants.SUCCESS_STATUS)
