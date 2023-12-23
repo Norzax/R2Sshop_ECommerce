@@ -1,6 +1,7 @@
 package com.aclass.r2sshop_ecommerce.repositories;
 
 import com.aclass.r2sshop_ecommerce.models.entity.CartLineItemEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +20,8 @@ public interface CartLineItemRepository extends JpaRepository<CartLineItemEntity
     Long getExistOrderIdByCarId(Long cartId);
     @Query("select sum(clt.totalPrice) from CartLineItemEntity clt where clt.order.id = :orderId and clt.isDeleted = false")
     Double getTotalPrice(Long orderId);
+    @Transactional
     @Modifying
-    @Query("update CartLineItemEntity clt set clt.isDeleted = true where clt.order.id = :orderId and clt.isDeleted = false")
+    @Query("update CartLineItemEntity clt set clt.isDeleted = true where clt.order.id = :orderId")
     void softDelete(Long orderId);
 }
