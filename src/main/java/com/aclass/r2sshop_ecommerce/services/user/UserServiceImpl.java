@@ -357,15 +357,18 @@ public class UserServiceImpl implements UserService{
             newUserEntity.setRoles(roles);
         }
 
+        UserEntity userEntity = userRepository.save(newUserEntity);
         try {
             if(defaultRole.getName().equals("USER")){
                 CartEntity newCart = new CartEntity();
-                newCart.setUser(userRepository.save(newUserEntity));
+                newCart.setUser(userEntity);
                 newCart.setCreateDate(new Date());
                 cartRepository.save(newCart);
-            }
-            else {
-                userRepository.save(newUserEntity);
+
+                AddressEntity newAddress = new AddressEntity();
+                newAddress.setAddress(userDto.getAddress());
+                newAddress.setUser(userEntity);
+                addressRepository.save(newAddress);
             }
 
             return getRegisterResponseDTOResponseDTO(userDto);

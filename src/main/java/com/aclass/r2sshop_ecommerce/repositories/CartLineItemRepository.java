@@ -2,8 +2,19 @@ package com.aclass.r2sshop_ecommerce.repositories;
 
 import com.aclass.r2sshop_ecommerce.models.entity.CartLineItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface CartLineItemRepository extends JpaRepository<CartLineItemEntity, Long> {
+    @Query("select clt from CartLineItemEntity clt where clt.variantProduct.id = :variantProductId and clt.cart.id = :cartId")
+    Optional<CartLineItemEntity> getExistCartLineItem(@Param("variantProductId") Long variantProductId, @Param("cartId") Long cartId);
+
+    @Query("select count(clt) from CartLineItemEntity clt where clt.cart.id = :cartId and clt.isDeleted = false")
+    int getIfCartHaveItem(Long cartId);
+    @Query("select clt.order.id from CartLineItemEntity clt where clt.cart.id = :cartId and clt.isDeleted = false")
+    Long getExistOrderIdByCarId(Long cartId);
 }

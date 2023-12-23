@@ -10,5 +10,5 @@ public interface CartService extends IService<CartDTO> {
     ResponseDTO<CartDTO> findCartByUserId(Long userId);
     public ResponseDTO<CartDTO> getUserCart(Long userId);
     public ResponseDTO<CartDTO> findCartForCurrentUser();
-    public ResponseDTO<CartDTO> addProductToCart(Long productId, int quantity);
+    public ResponseDTO<CartDTO> addProductToCart(Long variantProductId, int quantity);
 }
