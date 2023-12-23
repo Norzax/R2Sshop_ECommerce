@@ -32,7 +32,6 @@ public class AppConstants {
     public static final String USERNAME_EXIST_MESSAGE = "Can not create account, username existed";
     public static final String USER_NOT_FOUND = "User not found";
     public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password or this user has been deleted";
-    public static final String INVALID_USERNAME_OR_PASSWORD = "Invalid username or password";
     public static final String UN_AUTHORIZED_MESAGE = "Unauthorized: Address does not belong to the logged-in user.";
 
 }

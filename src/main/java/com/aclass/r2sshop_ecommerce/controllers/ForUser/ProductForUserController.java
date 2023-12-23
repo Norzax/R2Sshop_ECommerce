@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Product For User Controller" )
+@Tag(name = "User Controller - Product" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/product")
 public class ProductForUserController {

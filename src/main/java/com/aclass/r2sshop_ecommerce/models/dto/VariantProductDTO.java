@@ -18,4 +18,6 @@ public class VariantProductDTO {
     private String size;
     private String model;
     private Long price;
+
+    private Long productId;
 }
