@@ -21,6 +21,7 @@ public class PromoDTO {
     private int usageLimit;
     private int discountPercentage;
     private String description;
+    private boolean isEnable;
 
     @JsonIgnore
     private boolean isOrderDiscount;
