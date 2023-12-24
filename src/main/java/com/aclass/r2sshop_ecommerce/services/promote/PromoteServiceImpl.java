@@ -171,24 +171,24 @@ public class PromoteServiceImpl implements PromoteService{
             if(!existingPromo.isOrderDiscount()){
                 Optional<VariantProductEntity> optionalVariantProduct = variantProductRepository.findById(dto.getVariantProductId());
                 VariantProductEntity variantProduct = optionalVariantProduct.get();
-                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
-                if (exists) {
-                    return ResponseDTO.<PromoDTO>builder()
-                            .status(AppConstants.ERROR_STATUS)
-                            .message("Error: VariantProduct already linked to an active promo.")
-                            .build();
-                }
+//                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
+//                if (exists) {
+//                    return ResponseDTO.<PromoDTO>builder()
+//                            .status(AppConstants.ERROR_STATUS)
+//                            .message("Error: VariantProduct already linked to an active promo.")
+//                            .build();
+//                }
 
                 existingPromo.getVariantProducts().add(variantProduct);
                 variantProduct.getPromos().add(existingPromo);
             } else {
-                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
-                if (exists) {
-                    return ResponseDTO.<PromoDTO>builder()
-                            .status(AppConstants.ERROR_STATUS)
-                            .message("Error: VariantProduct already linked to an active promo.")
-                            .build();
-                }
+//                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
+//                if (exists) {
+//                    return ResponseDTO.<PromoDTO>builder()
+//                            .status(AppConstants.ERROR_STATUS)
+//                            .message("Error: VariantProduct already linked to an active promo.")
+//                            .build();
+//                }
                 existingPromo.getVariantProducts().clear();
             }
 

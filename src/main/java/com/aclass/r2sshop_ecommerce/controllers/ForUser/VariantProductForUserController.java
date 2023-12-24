@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "User Controller - Variant Product" )
+@Tag(name = "2. User: <Variant Product>" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/user/variant_product")
 public class VariantProductForUserController {

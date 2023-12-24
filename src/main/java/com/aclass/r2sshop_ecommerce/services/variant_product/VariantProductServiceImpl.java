@@ -4,6 +4,7 @@ import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.VariantProductDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.ProductEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.PromoEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.VariantProductEntity;
 import com.aclass.r2sshop_ecommerce.repositories.ProductRepository;
 import com.aclass.r2sshop_ecommerce.repositories.VariantProductRepository;
@@ -11,8 +12,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +40,34 @@ public class VariantProductServiceImpl implements VariantProductService {
             List<VariantProductEntity> variantProducts = variantProductRepository.findAllByProductId(productId);
 
             List<VariantProductDTO> variantProductDTOs = variantProducts.stream()
-                    .map(variantProductEntity -> modelMapper.map(variantProductEntity, VariantProductDTO.class))
+                    .map(variantProductEntity -> {
+                        VariantProductDTO variantProductDTO = modelMapper.map(variantProductEntity, VariantProductDTO.class);
+
+                        Set<PromoEntity> promos = variantProductEntity.getPromos();
+                        if (promos != null && !promos.isEmpty()) {
+                            double maxDiscount = 0;
+
+                            for (PromoEntity promo : promos) {
+                                if (promo.getIsEnable() && (promo.getUsageLimit() == -1 || promo.getUsageLimit() > 0) && new Date().after(promo.getStartDate())) {
+                                    double discountPercentage = promo.getDiscountPercentage();
+                                    if (discountPercentage > maxDiscount) {
+                                        maxDiscount = discountPercentage;
+                                    }
+                                }
+                            }
+
+                            if (maxDiscount > 0) {
+                                double price = variantProductEntity.getPrice();
+                                double discountPrice = price * (1 - (maxDiscount / 100));
+                                variantProductDTO.setDiscountPrice(discountPrice);
+                            } else {
+                                variantProductDTO.setDiscountPrice(null);
+                            }
+                        } else {
+                            variantProductDTO.setDiscountPrice(null);
+                        }
+                        return variantProductDTO;
+                    })
                     .collect(Collectors.toList());
 
             return ResponseDTO.<List<VariantProductDTO>>builder()
@@ -64,7 +95,34 @@ public class VariantProductServiceImpl implements VariantProductService {
         }
 
         List<VariantProductDTO> listRes = list.stream()
-                .map(variantProductEntity -> modelMapper.map(variantProductEntity, VariantProductDTO.class))
+                .map(variantProductEntity -> {
+                    VariantProductDTO variantProductDTO = modelMapper.map(variantProductEntity, VariantProductDTO.class);
+
+                    Set<PromoEntity> promos = variantProductEntity.getPromos();
+                    if (promos != null && !promos.isEmpty()) {
+                        double maxDiscount = 0;
+
+                        for (PromoEntity promo : promos) {
+                            if (promo.getIsEnable() && (promo.getUsageLimit() == -1 || promo.getUsageLimit() > 0) && new Date().after(promo.getStartDate())) {
+                                double discountPercentage = promo.getDiscountPercentage();
+                                if (discountPercentage > maxDiscount) {
+                                    maxDiscount = discountPercentage;
+                                }
+                            }
+                        }
+
+                        if (maxDiscount > 0) {
+                            double price = variantProductEntity.getPrice();
+                            double discountPrice = price * (1 - (maxDiscount / 100));
+                            variantProductDTO.setDiscountPrice(discountPrice);
+                        } else {
+                            variantProductDTO.setDiscountPrice(null);
+                        }
+                    } else {
+                        variantProductDTO.setDiscountPrice(null);
+                    }
+                    return variantProductDTO;
+                })
                 .collect(Collectors.toList());
 
         return ResponseDTO.<List<VariantProductDTO>>builder()
@@ -79,7 +137,33 @@ public class VariantProductServiceImpl implements VariantProductService {
         Optional<VariantProductEntity> optionalVariantProduct = variantProductRepository.findById(id);
 
         if (optionalVariantProduct.isPresent()) {
-            VariantProductDTO variantProductDTO = modelMapper.map(optionalVariantProduct.get(), VariantProductDTO.class);
+            VariantProductEntity variantProductEntity = optionalVariantProduct.get();
+            VariantProductDTO variantProductDTO = modelMapper.map(variantProductEntity, VariantProductDTO.class);
+
+            Set<PromoEntity> promos = variantProductEntity.getPromos();
+            if (promos != null && !promos.isEmpty()) {
+                double maxDiscount = 0;
+
+                for (PromoEntity promo : promos) {
+                    if (promo.getIsEnable() && (promo.getUsageLimit() == -1 || promo.getUsageLimit() > 0) && new Date().after(promo.getStartDate())) {
+                        double discountPercentage = promo.getDiscountPercentage();
+                        if (discountPercentage > maxDiscount) {
+                            maxDiscount = discountPercentage;
+                        }
+                    }
+                }
+
+                if (maxDiscount > 0) {
+                    double price = variantProductEntity.getPrice();
+                    double discountPrice = price * (1 - (maxDiscount / 100));
+                    variantProductDTO.setDiscountPrice(discountPrice);
+                } else {
+                    variantProductDTO.setDiscountPrice(null);
+                }
+            } else {
+                variantProductDTO.setDiscountPrice(null);
+            }
+
             return ResponseDTO.<VariantProductDTO>builder()
                     .status(String.valueOf(HttpStatus.OK.value()))
                     .message(AppConstants.FOUND_MESSAGE)
@@ -121,13 +205,11 @@ public class VariantProductServiceImpl implements VariantProductService {
             if (optionalVariantProduct.isPresent()) {
                 VariantProductEntity existingVariantProduct = optionalVariantProduct.get();
 
-                // Update the fields with new values from updatedVariantProductDTO
                 existingVariantProduct.setColor(variantProductDTO.getColor());
                 existingVariantProduct.setSize(variantProductDTO.getSize());
                 existingVariantProduct.setModel(variantProductDTO.getModel());
                 existingVariantProduct.setPrice(variantProductDTO.getPrice());
 
-                // Save the updated variant product
                 VariantProductEntity updatedVariantProduct = variantProductRepository.save(existingVariantProduct);
 
                 VariantProductDTO updatedVariantProductDTO = modelMapper.map(updatedVariantProduct, VariantProductDTO.class);

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Admin Controller - Variant Product" )
+@Tag(name = "3. Admin: <Variant Product>" )
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/admin/variant")
 public class VariantController {
