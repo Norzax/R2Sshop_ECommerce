@@ -21,5 +21,12 @@ public class OrderResponseDTO {
     private String address;
     private Timestamp deliveryTime;
     private Double totalPrice;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Double discountPrice;
     private String userInfo;
+
+    public void setDiscountPrice(Double discountPrice) {
+        this.discountPrice = (discountPrice == null || discountPrice.equals(0.0)) ? null : discountPrice;
+    }
 }

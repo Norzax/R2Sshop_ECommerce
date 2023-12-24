@@ -19,4 +19,5 @@ import java.util.List;
 public class OrderRequestDTO {
     private String address;
     private String userInfo;
+    private String promoCode;
 }
