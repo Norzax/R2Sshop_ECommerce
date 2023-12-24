@@ -18,4 +18,11 @@ public interface PromoRepository extends JpaRepository<PromoEntity, Long> {
 
     @Query("select p from PromoEntity  p where p.code = :code and p.isEnable = true and p.usageLimit > 0 and p.isOrderDiscount = true")
     Optional<PromoEntity> getByCodeAndValid(String code);
+
+    @Query("select count (p) > 0 from PromoEntity p " +
+            "join p.variantProducts vp " +
+            "where vp.id = :variantProductId " +
+            "and p.isEnable = true " +
+            "and p.id != :promoId")
+    boolean existsByVariantProductsIdAndIsEnableTrueAndIdNot(Long variantProductId, Long promoId);
 }

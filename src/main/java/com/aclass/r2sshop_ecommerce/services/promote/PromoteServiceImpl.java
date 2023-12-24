@@ -140,7 +140,70 @@ public class PromoteServiceImpl implements PromoteService{
 
     @Override
     public ResponseDTO<PromoDTO> update(Long id, PromoDTO dto) {
-        return null;
+        if (id == null) {
+            return ResponseDTO.<PromoDTO>builder()
+                    .status(AppConstants.ERROR_STATUS)
+                    .message("Error: ID cannot be null.")
+                    .build();
+        }
+        Optional<PromoEntity> optionalPromo = promoRepository.findById(id);
+
+        if (optionalPromo.isPresent()) {
+            PromoEntity existingPromo = optionalPromo.get();
+
+            boolean isCodeExists = promoRepository.existsByCode(dto.getCode());
+            if (isCodeExists && !existingPromo.getCode().equals(dto.getCode())) {
+                return ResponseDTO.<PromoDTO>builder()
+                        .status(AppConstants.ERROR_STATUS)
+                        .message("Error: Promo with the same code already exists.")
+                        .build();
+            }
+
+            existingPromo.setId(id);
+            existingPromo.setCode(dto.getCode());
+            existingPromo.setStartDate(dto.getStartDate());
+            existingPromo.setEndDate(dto.getEndDate());
+            existingPromo.setIsEnable(dto.isEnable());
+            existingPromo.setUsageLimit(dto.getUsageLimit());
+            existingPromo.setDiscountPercentage(dto.getDiscountPercentage());
+            existingPromo.setDescription(dto.getDescription());
+            existingPromo.setOrderDiscount(dto.getVariantProductId() != 0 || dto.getVariantProductId() != null ? false : true);
+
+            if(!existingPromo.isOrderDiscount()){
+                Optional<VariantProductEntity> optionalVariantProduct = variantProductRepository.findById(dto.getVariantProductId());
+                VariantProductEntity variantProduct = optionalVariantProduct.get();
+                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
+                if (exists) {
+                    return ResponseDTO.<PromoDTO>builder()
+                            .status(AppConstants.ERROR_STATUS)
+                            .message("Error: VariantProduct already linked to an active promo.")
+                            .build();
+                }
+
+                existingPromo.getVariantProducts().add(variantProduct);
+                variantProduct.getPromos().add(existingPromo);
+            }
+
+            try {
+                PromoEntity updatedPromo = promoRepository.save(existingPromo);
+                PromoDTO updatedPromoDTO = modelMapper.map(updatedPromo, PromoDTO.class);
+                return ResponseDTO.<PromoDTO>builder()
+                        .status(AppConstants.SUCCESS_STATUS)
+                        .message(AppConstants.SUCCESS_MESSAGE)
+                        .data(updatedPromoDTO)
+                        .build();
+            } catch (Exception e) {
+                return ResponseDTO.<PromoDTO>builder()
+                        .status(AppConstants.ERROR_STATUS)
+                        .message("Error updating promo: " + e.getMessage())
+                        .build();
+            }
+        } else {
+            return ResponseDTO.<PromoDTO>builder()
+                    .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                    .message(AppConstants.NOT_FOUND_MESSAGE)
+                    .build();
+        }
     }
 
     @Override
