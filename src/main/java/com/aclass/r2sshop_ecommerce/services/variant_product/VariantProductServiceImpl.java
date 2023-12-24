@@ -33,8 +33,7 @@ public class VariantProductServiceImpl implements VariantProductService {
         Optional<ProductEntity> optionalProduct = productRepository.findProductWithVariantsById(productId);
 
         if (optionalProduct.isPresent()) {
-            ProductEntity productEntity = optionalProduct.get();
-            List<VariantProductEntity> variantProducts = productEntity.getVariantProductEntities();
+            List<VariantProductEntity> variantProducts = variantProductRepository.findAllByProductId(productId);
 
             List<VariantProductDTO> variantProductDTOs = variantProducts.stream()
                     .map(variantProductEntity -> modelMapper.map(variantProductEntity, VariantProductDTO.class))

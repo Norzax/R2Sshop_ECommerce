@@ -8,9 +8,11 @@ import com.aclass.r2sshop_ecommerce.models.dto.common.OrderRequestDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.OrderResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.OrderEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.PromoEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
 import com.aclass.r2sshop_ecommerce.repositories.CartLineItemRepository;
 import com.aclass.r2sshop_ecommerce.repositories.OrderRepository;
+import com.aclass.r2sshop_ecommerce.repositories.PromoRepository;
 import com.aclass.r2sshop_ecommerce.services.cart.CartService;
 import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import org.modelmapper.ModelMapper;
@@ -24,17 +26,18 @@ import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
-
     private final OrderRepository orderRepository;
     private final CartLineItemRepository cartLineItemRepository;
+    private final PromoRepository promoRepository;
     private final UserService userService;
     private final CartService cartService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, CartLineItemRepository cartLineItemRepository, UserService userService, CartService cartService, ModelMapper modelMapper) {
+    public OrderServiceImpl(OrderRepository orderRepository, CartLineItemRepository cartLineItemRepository, PromoRepository promoRepository, UserService userService, CartService cartService, ModelMapper modelMapper) {
         this.orderRepository = orderRepository;
         this.cartLineItemRepository = cartLineItemRepository;
+        this.promoRepository = promoRepository;
         this.userService = userService;
         this.cartService = cartService;
         this.modelMapper = modelMapper;
@@ -101,6 +104,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseDTO<OrderResponseDTO> confirmOrder(OrderRequestDTO requestDTO) {
         try {
+            int discount = 0;
+            if(requestDTO.getPromoCode() != null && !requestDTO.getPromoCode().isEmpty()){
+                Optional<PromoEntity> findPromo = promoRepository.getByCodeAndValid(requestDTO.getPromoCode());
+                if(findPromo.isPresent()){
+                    discount = findPromo.get().getDiscountPercentage();
+                }
+            }
             Long currentUserId = userService.getCurrentUserId();
             Optional<OrderEntity> currentOrder = orderRepository.getPresentOrder(currentUserId);
             if (currentOrder.isPresent()) {
@@ -108,13 +118,14 @@ public class OrderServiceImpl implements OrderService {
                 completeOrder.setId(currentOrder.get().getId());
                 completeOrder.setAddress(requestDTO.getAddress());
                 completeOrder.setTotalPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()));
+                completeOrder.setDiscountPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()) - (cartLineItemRepository.getTotalPrice(completeOrder.getId()) * discount / 100));
                 completeOrder.setUserInfo(requestDTO.getUserInfo());
                 completeOrder.setDeliveryTime(calculateDeliveryTime());
 
                 OrderEntity saved = new OrderEntity();
                 saved.setId(currentOrder.get().getId());
                 saved.setAddress(requestDTO.getAddress());
-                saved.setTotalPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()));
+                saved.setTotalPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()) - (cartLineItemRepository.getTotalPrice(completeOrder.getId()) * discount / 100));
                 saved.setUser(modelMapper.map(userService.getInforCurrentUser().getData(), UserEntity.class));
                 saved.setDeliveryTime(calculateDeliveryTime());
                 if(requestDTO.getUserInfo().equals(null) || requestDTO.getUserInfo().equals("".trim())) {
