@@ -1,7 +1,5 @@
 package com.aclass.r2sshop_ecommerce.controllers.ForUser;
 
-import com.aclass.r2sshop_ecommerce.models.dto.CategoryDTO;
-import com.aclass.r2sshop_ecommerce.models.dto.OrderDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.OrderRequestDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.OrderResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
@@ -12,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Tag(name = "User Controller - Order" )

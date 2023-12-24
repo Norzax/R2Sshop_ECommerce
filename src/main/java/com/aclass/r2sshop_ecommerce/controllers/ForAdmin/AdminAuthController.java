@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
 import com.aclass.r2sshop_ecommerce.services.user.UserServiceImpl;
