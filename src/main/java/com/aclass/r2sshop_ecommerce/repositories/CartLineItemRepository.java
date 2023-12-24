@@ -27,4 +27,8 @@ public interface CartLineItemRepository extends JpaRepository<CartLineItemEntity
     void softDelete(Long orderId);
     @Query("select clt from CartLineItemEntity clt  where clt.cart.user.id = :userId and clt.isDeleted = false")
     List<CartLineItemEntity> findByCart_User_Id(Long userId);
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM CartLineItemEntity c WHERE c.variantProduct.id = :variantProductId AND c.cart.id = :cartId")
+    void deleteAllByVariantProduct_IdAndCart_Id(Long variantProductId, Long cartId);
 }
