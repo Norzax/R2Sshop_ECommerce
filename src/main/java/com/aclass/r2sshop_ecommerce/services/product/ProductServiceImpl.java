@@ -84,7 +84,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (list.isEmpty()) {
             return ResponseDTO.<List<ProductDTO>>builder()
-                    .status(String.valueOf(HttpStatus.NOT_FOUND)) // Đây có thể là nguyên nhân của lỗi
+                    .status(String.valueOf(HttpStatus.NOT_FOUND))
                     .message("Not found list products")
                     .build();
         }

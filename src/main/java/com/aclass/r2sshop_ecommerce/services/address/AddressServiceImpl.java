@@ -2,6 +2,7 @@ package com.aclass.r2sshop_ecommerce.services.address;
 
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.AddressUpdateRequestDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
@@ -9,6 +10,7 @@ import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
 import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -36,9 +38,15 @@ public class AddressServiceImpl implements AddressService {
     public ResponseDTO<List<AddressDTO>> findAddressesForLoggedInUser() {
         try {
 
-            UserEntity loggedInUser = getLoggedInUser();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            List<AddressEntity> addresses = addressRepository.findByUser(loggedInUser);
+            Long userId = null;
+            if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+
+                userId = userDetails.getUser().getId();
+            }
+
+            List<AddressEntity> addresses = addressRepository.findByUserId(userId);
 
             List<AddressDTO> addressDTOs = addresses.stream()
                     .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))

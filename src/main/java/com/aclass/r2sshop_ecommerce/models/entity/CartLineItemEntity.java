@@ -34,7 +34,6 @@ public class CartLineItemEntity {
     @Column(name="total_price")
     private Double totalPrice;
 
-
     @Column(name = "added_date")
     private Timestamp addedDate;
 

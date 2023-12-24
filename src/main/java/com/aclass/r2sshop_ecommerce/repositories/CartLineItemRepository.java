@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,4 +25,6 @@ public interface CartLineItemRepository extends JpaRepository<CartLineItemEntity
     @Modifying
     @Query("update CartLineItemEntity clt set clt.isDeleted = true where clt.order.id = :orderId")
     void softDelete(Long orderId);
+    @Query("select clt from CartLineItemEntity clt  where clt.cart.user.id = :userId and clt.isDeleted = false")
+    List<CartLineItemEntity> findByCart_User_Id(Long userId);
 }

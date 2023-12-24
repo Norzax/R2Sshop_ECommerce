@@ -273,10 +273,20 @@ public class UserServiceImpl implements UserService{
 
                 UserEntity updatedUser = userRepository.save(existingUser);
 
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(id);
+
+                UserDTO currentUserDTO = modelMapper.map(updatedUser, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
+
+
                 return ResponseDTO.<UserDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
                         .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
-                        .data(modelMapper.map(updatedUser, UserDTO.class))
+                        .data(currentUserDTO)
                         .build();
             } else {
                 return ResponseDTO.<UserDTO>builder()
@@ -420,7 +430,14 @@ public class UserServiceImpl implements UserService{
 
                 UserEntity currentUserEntity = userDetails.getUser();
 
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(currentUserEntity.getId());
+
                 UserDTO currentUserDTO = modelMapper.map(currentUserEntity, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
 
                 return ResponseDTO.<UserDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
@@ -443,57 +460,87 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO updateUserDTO) {
+    public ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO dto) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         try {
-            UserEntity existingUser = userDetails.getUser();
+            Optional<UserEntity> optionalUser = userRepository.findById(userDetails.getUser().getId());
 
-            if (updateUserDTO.getFullName() != null) {
-                existingUser.setFullName(updateUserDTO.getFullName());
-            }
+            if (optionalUser.isPresent()) {
+                UserEntity existingUser = optionalUser.get();
+                if(dto.getFullName()!=null) {
+                    existingUser.setFullName(dto.getFullName());
+                }
+                if(dto.getNewPassword() != null) {
+                    if(!passwordEncoder.matches(dto.getOldPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
+                                .build();
+                    }
 
-            if (updateUserDTO.getEmail() != null) {
-                existingUser.setEmail(updateUserDTO.getEmail());
-            }
+                    if(passwordEncoder.matches(dto.getNewPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_SAME_PASSWORD)
+                                .build();
+                    }
 
-            if (updateUserDTO.getOldPassword() != null && updateUserDTO.getNewPassword() != null && updateUserDTO.getConfirmNewPassword() != null) {
-                // Handle password change
-                if (!passwordEncoder.matches(updateUserDTO.getOldPassword(), existingUser.getPassword())) {
-                    return ResponseDTO.<UserDTO>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
-                            .build();
+                    if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_UPDATE_PASSWORD_NOT_SAME)
+                                .build();
+                    }
+
+                    existingUser.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                }
+                if(dto.getEmail() != null) {
+                    existingUser.setEmail(dto.getEmail());
                 }
 
-                if (passwordEncoder.matches(updateUserDTO.getNewPassword(), existingUser.getPassword())) {
-                    return ResponseDTO.<UserDTO>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message(AppConstants.USER_SAME_PASSWORD)
-                            .build();
+                if (dto.getAddressesUpdate() != null) {
+                    for (AddressUpdateRequestDTO address : dto.getAddressesUpdate()) {
+                        Optional<AddressEntity> findAddress = addressRepository.findAddressEntityByAddressAndUserId(address.getOldAddress(),userDetails.getUser().getId());
+                        if(findAddress.isPresent()){
+                            Optional<AddressEntity> checkNewAddressExistence = addressRepository.findAddressEntityByAddressAndUserId(address.getNewAddress(),userDetails.getUser().getId());
+                            if(checkNewAddressExistence.isPresent()){
+                                return ResponseDTO.<UserDTO>builder()
+                                        .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                        .message(AppConstants.USER_ADDRESS_EXIST)
+                                        .build();
+                            }
+
+                            AddressEntity updateAddress = findAddress.get();
+                            updateAddress.setUser(existingUser);
+                            updateAddress.setAddress(address.getNewAddress());
+                            addressRepository.save(updateAddress);
+                        }
+                    }
                 }
 
-                if (!updateUserDTO.getNewPassword().equals(updateUserDTO.getConfirmNewPassword())) {
-                    return ResponseDTO.<UserDTO>builder()
-                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                            .message(AppConstants.USER_UPDATE_PASSWORD_NOT_SAME)
-                            .build();
-                }
+                UserEntity updatedUser = userRepository.save(existingUser);
 
-                existingUser.setPassword(passwordEncoder.encode(updateUserDTO.getNewPassword()));
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(userDetails.getUser().getId());
+
+                UserDTO currentUserDTO = modelMapper.map(updatedUser, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
+
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
+                        .data(currentUserDTO)
+                        .build();
+            } else {
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
+                        .build();
             }
-
-            // Handle address updates as needed
-
-            UserEntity updatedUser = userRepository.save(existingUser);
-
-            UserDTO updatedUserDTO = modelMapper.map(updatedUser, UserDTO.class);
-
-            return ResponseDTO.<UserDTO>builder()
-                    .status(String.valueOf(HttpStatus.OK.value()))
-                    .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
-                    .data(updatedUserDTO)
-                    .build();
         } catch (Exception e) {
             return ResponseDTO.<UserDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
