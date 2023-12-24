@@ -8,10 +8,7 @@ import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.CartLineItemEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.OrderEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
-import com.aclass.r2sshop_ecommerce.repositories.CartLineItemRepository;
-import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
-import com.aclass.r2sshop_ecommerce.repositories.OrderRepository;
-import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
+import com.aclass.r2sshop_ecommerce.repositories.*;
 import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import com.aclass.r2sshop_ecommerce.services.variant_product.VariantProductService;
 import org.modelmapper.ModelMapper;
@@ -30,15 +27,17 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final CartLineItemRepository cartLineItemRepository;
+    private final VariantProductRepository variantProductRepository;
     private final OrderRepository orderRepository;
     private final UserService userService;
     private final VariantProductService variantProductService;
     private final ModelMapper modelMapper;
 
-    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, CartLineItemRepository cartLineItemRepository, OrderRepository orderRepository, UserService userService, VariantProductService variantProductService, ModelMapper modelMapper) {
+    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, CartLineItemRepository cartLineItemRepository, VariantProductRepository variantProductRepository, OrderRepository orderRepository, UserService userService, VariantProductService variantProductService, ModelMapper modelMapper) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.cartLineItemRepository = cartLineItemRepository;
+        this.variantProductRepository = variantProductRepository;
         this.orderRepository = orderRepository;
         this.userService = userService;
         this.variantProductService = variantProductService;
@@ -176,6 +175,7 @@ public class CartServiceImpl implements CartService {
                 if (cart != null) {
                     CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
 
+
                     return ResponseDTO.<CartDTO>builder()
                             .status(String.valueOf(HttpStatus.OK.value()))
                             .message(AppConstants.FOUND_MESSAGE)
@@ -255,18 +255,26 @@ public class CartServiceImpl implements CartService {
     @Override
     public ResponseDTO<CartDTO> findCartForCurrentUser() {
         try {
-            // Lấy ID của người dùng đang login
             Long userId = userService.getCurrentUserId();
 
             if (userId != null) {
                 Optional<UserEntity> optionalUser = userRepository.findById(userId);
 
                 if (optionalUser.isPresent()) {
-                    UserEntity user = optionalUser.get();
-                    CartEntity cart = user.getCart();
+                    List<CartLineItemEntity> cartLineItems = cartLineItemRepository.findByCart_User_Id(userId);
 
-                    if (cart != null) {
-                        CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
+                    if (!cartLineItems.isEmpty()) {
+                        List<CartLineItemDTO> cartLineItemDTOs = cartLineItems.stream()
+                                .map(cartLineItem -> {
+                                    CartLineItemDTO cartLineItemDTO = modelMapper.map(cartLineItem, CartLineItemDTO.class);
+                                    VariantProductDTO variantProductDTO = modelMapper.map(cartLineItem.getVariantProduct(), VariantProductDTO.class);
+                                    cartLineItemDTO.setVariantProductDTO(variantProductDTO);
+                                    return cartLineItemDTO;
+                                })
+                                .collect(Collectors.toList());
+
+                        CartDTO cartDTO = new CartDTO();
+                        cartDTO.setCartLineItemEntities(cartLineItemDTOs);
 
                         return ResponseDTO.<CartDTO>builder()
                                 .status(String.valueOf(HttpStatus.OK.value()))
@@ -276,7 +284,7 @@ public class CartServiceImpl implements CartService {
                     } else {
                         return ResponseDTO.<CartDTO>builder()
                                 .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                                .message("User does not have a cart.")
+                                .message("User does not have cart items.")
                                 .build();
                     }
                 } else {
@@ -325,27 +333,41 @@ public class CartServiceImpl implements CartService {
             ResponseDTO<VariantProductDTO> variantProductDTO = variantProductService.findById(variantProductId);
 
             if (variantProductDTO != null && userCartDTO != null) {
-                // Kiểm tra xem sản phẩm đã tồn tại trong CartLineItem chưa
                 Optional<CartLineItemEntity> existingCartItem = cartLineItemRepository.getExistCartLineItem(variantProductId, cartId);
 
                 if (existingCartItem.isPresent()) {
-                    // Nếu sản phẩm đã tồn tại, cập nhật số lượng
                     existingCartItem.get().setQuantity(existingCartItem.get().getQuantity() + quantity);
                     double newTotalPrice = existingCartItem.get().getQuantity() * variantProductDTO.getData().getPrice();
                     existingCartItem.get().setTotalPrice(newTotalPrice);
 
                     cartLineItemRepository.save(modelMapper.map(existingCartItem, CartLineItemEntity.class));
+
+                    List<CartLineItemEntity> cartLineItems = cartLineItemRepository.findByCart_User_Id(userId);
+
+                    List<CartLineItemDTO> cartLineItemDTOs = cartLineItems.stream()
+                            .map(cartLineItem -> {
+                                CartLineItemDTO cartLineItemDTO = modelMapper.map(cartLineItem, CartLineItemDTO.class);
+                                VariantProductDTO variantProductDTOs = modelMapper.map(cartLineItem.getVariantProduct(), VariantProductDTO.class);
+                                cartLineItemDTO.setVariantProductDTO(variantProductDTOs);
+                                return cartLineItemDTO;
+                            })
+                            .collect(Collectors.toList());
+
+                    CartDTO cartDTO = new CartDTO();
+                    cartDTO.setCartLineItemEntities(cartLineItemDTOs);
+
                     return ResponseDTO.<CartDTO>builder()
                             .status(String.valueOf(HttpStatus.OK.value()))
                             .message("Product added to cart successfully")
-                            .data(userCartDTO)
+                            .data(cartDTO)
                             .build();
                 } else {
                     if(cartLineItemRepository.getIfCartHaveItem(cartId) > 0) {
                         ResponseDTO<VariantProductDTO> newLineVariantProductDTO = variantProductService.findById(variantProductId);
+                        VariantProductDTO getInfo = modelMapper.map(variantProductRepository.findById(variantProductId).get(), VariantProductDTO.class);
                         CartLineItemDTO newCartItem = new CartLineItemDTO();
                         newCartItem.setCartId(cartId);
-                        newCartItem.setVariantProductId(variantProductId);
+                        newCartItem.setVariantProductDTO(getInfo);
                         newCartItem.setQuantity(quantity);
                         double totalPrice = newLineVariantProductDTO.getData().getPrice() * newCartItem.getQuantity();
                         newCartItem.setTotalPrice(totalPrice);
@@ -365,11 +387,11 @@ public class CartServiceImpl implements CartService {
                         OrderEntity newOrder = new OrderEntity();
                         OrderEntity getNewOrder = orderRepository.save(newOrder);
 
-                        // Nếu sản phẩm chưa tồn tại, tạo mới CartLineItemDTO
                         ResponseDTO<VariantProductDTO> newLineVariantProductDTO = variantProductService.findById(variantProductId);
+                        VariantProductDTO getInfo = modelMapper.map(variantProductRepository.findById(variantProductId).get(), VariantProductDTO.class);
                         CartLineItemDTO newCartItem = new CartLineItemDTO();
                         newCartItem.setCartId(cartId);
-                        newCartItem.setVariantProductId(variantProductId);
+                        newCartItem.setVariantProductDTO(getInfo);
                         newCartItem.setQuantity(quantity);
                         double totalPrice = newLineVariantProductDTO.getData().getPrice() * newCartItem.getQuantity();
                         newCartItem.setTotalPrice(totalPrice);
@@ -377,14 +399,27 @@ public class CartServiceImpl implements CartService {
                         newCartItem.setAddedDate(new Timestamp(System.currentTimeMillis()));
                         newCartItem.setIsDeleted(false);
 
-                        // Thêm CartLineItemDTO vào giỏ hàng
                         userCartDTO.getCartLineItemEntities().add(newCartItem);
                         cartLineItemRepository.save(modelMapper.map(newCartItem, CartLineItemEntity.class));
+
+                        List<CartLineItemEntity> cartLineItems = cartLineItemRepository.findByCart_User_Id(userId);
+
+                        List<CartLineItemDTO> cartLineItemDTOs = cartLineItems.stream()
+                                .map(cartLineItem -> {
+                                    CartLineItemDTO cartLineItemDTO = modelMapper.map(cartLineItem, CartLineItemDTO.class);
+                                    VariantProductDTO variantProductDTOs = modelMapper.map(cartLineItem.getVariantProduct(), VariantProductDTO.class);
+                                    cartLineItemDTO.setVariantProductDTO(variantProductDTOs);
+                                    return cartLineItemDTO;
+                                })
+                                .collect(Collectors.toList());
+
+                        CartDTO cartDTO = new CartDTO();
+                        cartDTO.setCartLineItemEntities(cartLineItemDTOs);
 
                         return ResponseDTO.<CartDTO>builder()
                                 .status(String.valueOf(HttpStatus.OK.value()))
                                 .message("Product added to cart successfully")
-                                .data(userCartDTO)
+                                .data(cartDTO)
                                 .build();
                     }
                 }

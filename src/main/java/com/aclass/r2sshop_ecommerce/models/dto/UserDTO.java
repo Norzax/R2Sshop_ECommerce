@@ -19,13 +19,19 @@ public class UserDTO {
     @Schema(hidden = true)
     private long id;
     private String username;
+
+    @Schema(hidden = true)
     private String password;
     private String email;
     private String fullName;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<AddressDTO> addressDTOList;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private CartDTO cartDTO;
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Set<RoleDTO> roleDTOSet;
 }
 

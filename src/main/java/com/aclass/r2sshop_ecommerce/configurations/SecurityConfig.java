@@ -66,7 +66,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authz -> authz
                         .requestMatchers(WHITE_LIST).permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAuthority(RoleEnum.ADMIN.name())
-                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(RoleEnum.USER.name())
+                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(RoleEnum.USER.name(), RoleEnum.ADMIN.name())
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

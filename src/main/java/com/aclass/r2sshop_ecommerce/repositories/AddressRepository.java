@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface AddressRepository extends JpaRepository<AddressEntity, Long> {
     AddressEntity findAddressEntityByUser_Id(Long userId);
-    List<AddressEntity> findByUser(UserEntity user);
+    List<AddressEntity> findByUserId(Long userId);
     @Query("SELECT a FROM AddressEntity a WHERE a.address = :address AND a.user = :user")
     Optional<AddressEntity> findByAddressAndUser(@PathParam("address") String address, @PathParam("user") UserEntity user);
     @Query("select a from AddressEntity a where a.address = :address and a.user.id = :userId")
