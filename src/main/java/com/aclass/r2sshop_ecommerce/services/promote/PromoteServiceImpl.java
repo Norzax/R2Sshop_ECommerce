@@ -167,8 +167,7 @@ public class PromoteServiceImpl implements PromoteService{
             existingPromo.setUsageLimit(dto.getUsageLimit());
             existingPromo.setDiscountPercentage(dto.getDiscountPercentage());
             existingPromo.setDescription(dto.getDescription());
-            existingPromo.setOrderDiscount(dto.getVariantProductId() != 0 || dto.getVariantProductId() != null ? false : true);
-
+            existingPromo.setOrderDiscount((dto.getVariantProductId() == null || dto.getVariantProductId() == 0) ? true : false);
             if(!existingPromo.isOrderDiscount()){
                 Optional<VariantProductEntity> optionalVariantProduct = variantProductRepository.findById(dto.getVariantProductId());
                 VariantProductEntity variantProduct = optionalVariantProduct.get();
@@ -182,6 +181,15 @@ public class PromoteServiceImpl implements PromoteService{
 
                 existingPromo.getVariantProducts().add(variantProduct);
                 variantProduct.getPromos().add(existingPromo);
+            } else {
+                boolean exists = promoRepository.existsByVariantProductsIdAndIsEnableTrue(dto.getVariantProductId());
+                if (exists) {
+                    return ResponseDTO.<PromoDTO>builder()
+                            .status(AppConstants.ERROR_STATUS)
+                            .message("Error: VariantProduct already linked to an active promo.")
+                            .build();
+                }
+                existingPromo.getVariantProducts().clear();
             }
 
             try {
