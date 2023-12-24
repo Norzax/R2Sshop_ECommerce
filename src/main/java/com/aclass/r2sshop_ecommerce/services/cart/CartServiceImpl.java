@@ -323,11 +323,12 @@ public class CartServiceImpl implements CartService {
                 if (quantity == 0) {
                     // Nếu quantity = 0, xóa tất cả CartLineItem của sản phẩm này
                     cartLineItemRepository.deleteAllByVariantProduct_IdAndCart_Id(variantProductId, cartId);
-                } else if (existingCartItem.isPresent()) {
+                } else if (existingCartItem.isPresent() && !existingCartItem.get().getIsDeleted()) {
                     existingCartItem.get().setQuantity(existingCartItem.get().getQuantity() + quantity);
 
                     if (existingCartItem.get().getQuantity() <= 0) {
                         cartLineItemRepository.deleteById(existingCartItem.get().getId());
+                        orderRepository.deleteById(existingCartItem.get().getOrder().getId());
                     } else {
                         double newTotalPrice = existingCartItem.get().getQuantity() * variantProductDTO.getData().getPrice();
                         existingCartItem.get().setTotalPrice(newTotalPrice);
@@ -370,10 +371,8 @@ public class CartServiceImpl implements CartService {
                     }
                 }
 
-                // Cập nhật giỏ hàng trong cơ sở dữ liệu
                 userService.updateUserCart(userId, userCartDTO);
 
-                // Trả về giỏ hàng sau khi cập nhật
                 List<CartLineItemEntity> cartLineItems = cartLineItemRepository.findByCart_User_Id(userId);
                 List<CartLineItemDTO> cartLineItemDTOs = cartLineItems.stream()
                         .map(cartLineItem -> {

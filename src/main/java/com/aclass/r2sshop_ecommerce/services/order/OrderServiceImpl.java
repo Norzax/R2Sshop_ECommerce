@@ -1,5 +1,6 @@
 package com.aclass.r2sshop_ecommerce.services.order;
 
+import com.aclass.r2sshop_ecommerce.configurations.PromoScheduler;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.CartLineItemDTO;
@@ -29,15 +30,17 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final CartLineItemRepository cartLineItemRepository;
     private final PromoRepository promoRepository;
+    private final PromoScheduler promoScheduler;
     private final UserService userService;
     private final CartService cartService;
     private final ModelMapper modelMapper;
 
     @Autowired
-    public OrderServiceImpl(OrderRepository orderRepository, CartLineItemRepository cartLineItemRepository, PromoRepository promoRepository, UserService userService, CartService cartService, ModelMapper modelMapper) {
+    public OrderServiceImpl(OrderRepository orderRepository, CartLineItemRepository cartLineItemRepository, PromoRepository promoRepository, PromoScheduler promoScheduler, UserService userService, CartService cartService, ModelMapper modelMapper) {
         this.orderRepository = orderRepository;
         this.cartLineItemRepository = cartLineItemRepository;
         this.promoRepository = promoRepository;
+        this.promoScheduler = promoScheduler;
         this.userService = userService;
         this.cartService = cartService;
         this.modelMapper = modelMapper;
@@ -109,26 +112,34 @@ public class OrderServiceImpl implements OrderService {
                 Optional<PromoEntity> findPromo = promoRepository.getByCodeAndValid(requestDTO.getPromoCode());
                 if(findPromo.isPresent()){
                     discount = findPromo.get().getDiscountPercentage();
+                    if (findPromo.get().getUsageLimit() > 0) {
+                        findPromo.get().setUsageLimit(findPromo.get().getUsageLimit() - 1);
+                        promoRepository.save(findPromo.get());
+                    } else if (findPromo.get().getUsageLimit() == 0) {
+                        promoScheduler.updateCartLineItemTotalPrices();
+                    }
                 }
             }
+
             Long currentUserId = userService.getCurrentUserId();
             Optional<OrderEntity> currentOrder = orderRepository.getPresentOrder(currentUserId);
             if (currentOrder.isPresent()) {
                 OrderResponseDTO completeOrder = new OrderResponseDTO();
                 completeOrder.setId(currentOrder.get().getId());
                 completeOrder.setAddress(requestDTO.getAddress());
-                completeOrder.setTotalPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()));
-                completeOrder.setDiscountPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()) - (cartLineItemRepository.getTotalPrice(completeOrder.getId()) * discount / 100));
+                double totalPrice = cartLineItemRepository.getTotalPrice(completeOrder.getId());
+                completeOrder.setTotalPrice(totalPrice);
+                completeOrder.setDiscountPrice(totalPrice - (totalPrice * discount / 100));
                 completeOrder.setUserInfo(requestDTO.getUserInfo());
                 completeOrder.setDeliveryTime(calculateDeliveryTime());
 
                 OrderEntity saved = new OrderEntity();
                 saved.setId(currentOrder.get().getId());
                 saved.setAddress(requestDTO.getAddress());
-                saved.setTotalPrice(cartLineItemRepository.getTotalPrice(completeOrder.getId()) - (cartLineItemRepository.getTotalPrice(completeOrder.getId()) * discount / 100));
+                saved.setTotalPrice(totalPrice - (totalPrice * discount / 100));
                 saved.setUser(modelMapper.map(userService.getInforCurrentUser().getData(), UserEntity.class));
                 saved.setDeliveryTime(calculateDeliveryTime());
-                if(requestDTO.getUserInfo().equals(null) || requestDTO.getUserInfo().equals("".trim())) {
+                if(requestDTO.getUserInfo() == null || requestDTO.getUserInfo().trim().isEmpty()) {
                     saved.setReceiver(userService.getInforCurrentUser().getData().getFullName());
                 } else {
                     saved.setReceiver(requestDTO.getUserInfo());

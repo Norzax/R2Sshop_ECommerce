@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Admin Controller - Role")
+@Tag(name = "3. Admin: <Role>")
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/admin/role")
 public class RoleController {
