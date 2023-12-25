@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.services.UserDetailServiceImpl;
+package com.aclass.r2sshop_ecommerce.services.user_detail;
 
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;

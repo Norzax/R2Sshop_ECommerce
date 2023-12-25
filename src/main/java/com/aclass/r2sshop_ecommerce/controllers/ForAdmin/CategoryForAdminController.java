@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
 import com.aclass.r2sshop_ecommerce.models.dto.CategoryDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Category Controller" )
+@Tag(name = "3. Admin: <Category>" )
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/category")
-public class CategoryController {
+@RequestMapping("/api/v1/admin/category")
+public class CategoryForAdminController {
 
     private final CategoryService categoryService;
 
-    public CategoryController(CategoryService categoryService) {
+    public CategoryForAdminController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
 
@@ -31,7 +31,7 @@ public class CategoryController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/findById/{id}")
+    @GetMapping("/find-id/{id}")
     public ResponseEntity<ResponseDTO<CategoryDTO>> findById(@PathVariable Long id) {
         ResponseDTO<CategoryDTO> response = categoryService.findById(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;

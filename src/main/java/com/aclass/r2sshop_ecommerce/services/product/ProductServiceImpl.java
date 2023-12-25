@@ -30,22 +30,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDTO getProductById(Long productId) {
-        Optional<ProductEntity> optionalProduct = productRepository.findById(productId);
-
-        if (optionalProduct.isPresent()) {
-            ProductEntity productEntity = optionalProduct.get();
-            return modelMapper.map(productEntity, ProductDTO.class);
-        } else {
-            try {
-                throw new ProductNotFoundException("Product not found with id: " + productId);
-            } catch (ProductNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
     public PagingResponse<ProductDTO> findProductsByCategoryId(Long categoryId, PagingRequest request) {
         try {
             int pageSize = request.getPageSize();
@@ -60,8 +44,8 @@ public class ProductServiceImpl implements ProductService {
                 productEntities = productRepository.searchOrderByCategoryIdAsc(categoryId, pageSize, startIndex);
             }
 
-            int totalRecord = productRepository.getTotalRecordSearch();
-            int totalPage = (int) Math.ceil((double) totalRecord / pageSize) - 1;
+            int totalRecord = productRepository.getTotalRecordSearch(categoryId);
+            int totalPage = (int) Math.ceil((double) totalRecord / pageSize);
 
             List<ProductDTO> productDTOList = productEntities.stream()
                     .map(productEntity -> modelMapper.map(productEntity, ProductDTO.class))
@@ -100,7 +84,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (list.isEmpty()) {
             return ResponseDTO.<List<ProductDTO>>builder()
-                    .status(String.valueOf(HttpStatus.NOT_FOUND)) // Đây có thể là nguyên nhân của lỗi
+                    .status(String.valueOf(HttpStatus.NOT_FOUND))
                     .message("Not found list products")
                     .build();
         }

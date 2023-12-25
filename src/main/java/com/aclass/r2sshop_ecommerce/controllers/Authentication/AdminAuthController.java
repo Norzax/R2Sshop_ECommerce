@@ -1,4 +1,4 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.Authentication;
 
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
 import com.aclass.r2sshop_ecommerce.services.user.UserServiceImpl;
@@ -15,23 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
-@Tag(name = "Authentication Controller")
-@RequestMapping("/api/v1/auth")
+@Tag(name = "1. Authentication: <Admin>")
+@RequestMapping("/api/v1/adminAuth")
 @RequiredArgsConstructor
-public class AuthController {
-
+public class AdminAuthController {
     private final UserServiceImpl userServiceImpl;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseDTO<RegisterResponseDTO>> register(@RequestBody RegisterRequestDTO userDto) {
-        return ResponseEntity.ok(userServiceImpl.register(userDto));
-    }
-
-
-    @Transactional
-    @PostMapping("/authentication")
-    public ResponseEntity<ResponseDTO<LoginResponseDTO>> login(@RequestBody @Valid LoginResquestDTO userDto) {
-        return ResponseEntity.ok(userServiceImpl.login(userDto));
+        return ResponseEntity.ok(userServiceImpl.adminRegister(userDto));
     }
 }
-

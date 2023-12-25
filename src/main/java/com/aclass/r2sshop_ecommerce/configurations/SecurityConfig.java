@@ -1,7 +1,7 @@
 package com.aclass.r2sshop_ecommerce.configurations;
 
+import com.aclass.r2sshop_ecommerce.constants.RoleEnum;
 import com.aclass.r2sshop_ecommerce.filters.RequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -28,8 +28,8 @@ public class SecurityConfig {
             "/v3/api-docs.yaml",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/api/v1/auth/register",
-            "/api/v1/auth/authentication"
+            "/api/v1/auth/**",
+            "/api/v1/adminAuth/**"
     };
 
     private final UserDetailsService userDetailsService;
@@ -63,9 +63,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests(requests -> requests
-                    .requestMatchers(WHITE_LIST).permitAll()
-                    .anyRequest().authenticated())
+        http.authorizeHttpRequests(authz -> authz
+                        .requestMatchers(WHITE_LIST).permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasAuthority(RoleEnum.ADMIN.name())
+                        .requestMatchers("/api/v1/user/**").hasAnyAuthority(RoleEnum.USER.name(), RoleEnum.ADMIN.name())
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);

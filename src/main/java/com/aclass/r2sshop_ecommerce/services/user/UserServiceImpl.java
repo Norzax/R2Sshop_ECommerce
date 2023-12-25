@@ -2,16 +2,14 @@ package com.aclass.r2sshop_ecommerce.services.user;
 
 import com.aclass.r2sshop_ecommerce.Utilities.TokenUtil;
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
-import com.aclass.r2sshop_ecommerce.exceptions.UserException;
-import com.aclass.r2sshop_ecommerce.models.dto.RoleDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.CartLineItemDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.*;
 import com.aclass.r2sshop_ecommerce.models.dto.token.AccessTokenGenerated;
-import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.CartEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.RoleEntity;
-import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
+import com.aclass.r2sshop_ecommerce.models.entity.*;
 import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;
 import com.aclass.r2sshop_ecommerce.repositories.CartRepository;
 import com.aclass.r2sshop_ecommerce.repositories.RoleRepository;
@@ -20,10 +18,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -54,11 +55,20 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public ResponseDTO<LoginResponseDTO> login(LoginResquestDTO userDto) {
-        try{
+    public ResponseDTO<LoginResponseDTO> login(LoginRequestDTO userDto) {
+        try {
             var authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
-            if (authentication.isAuthenticated()){
+
+            if (authentication.isAuthenticated()) {
                 CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+                if (!userDetails.isEnabled()) {
+                    return ResponseDTO.<LoginResponseDTO>builder()
+                            .status(AppConstants.NOT_FOUND_STATUS)
+                            .message(AppConstants.USER_INACTIVE_STATUS)
+                            .build();
+                }
+
                 AccessTokenGenerated accessTokenGenerated = tokenUtil.generateToken(userDetails);
                 return ResponseDTO.<LoginResponseDTO>builder()
                         .status("OK")
@@ -71,80 +81,23 @@ public class UserServiceImpl implements UserService{
                                         .build()
                         ).build();
             } else {
-                throw new UsernameNotFoundException("Not found username: " + userDto.getUsername());
+                return ResponseDTO.<LoginResponseDTO>builder()
+                        .status(AppConstants.NOT_FOUND_STATUS)
+                        .message(AppConstants.USER_NOT_FOUND)
+                        .build();
             }
-        } catch (AuthenticationException e ){
-            throw new UserException(e.getMessage());
+        } catch (AuthenticationException e) {
+            return ResponseDTO.<LoginResponseDTO>builder()
+                    .status(AppConstants.NOT_FOUND_STATUS)
+                    .message(AppConstants.INVALID_USERNAME_OR_PASSWORD)
+                    .build();
         }
     }
 
     @Override
     public ResponseDTO<RegisterResponseDTO> register(RegisterRequestDTO userDto) {
-        ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
-        Optional<UserEntity> existingUser = userRepository.findByUsername(userDto.getUsername());
-
-        if(existingUser.isPresent()){
-            return ResponseDTO.<RegisterResponseDTO>builder()
-                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
-                    .message(AppConstants.USERNAME_EXIST_MESSAGE)
-                    .data(null)
-                    .build();
-        }
-
-
-        UserEntity newUserEntity = new UserEntity();
-        newUserEntity.setUsername(userDto.getUsername());
-        newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        newUserEntity.setEmail(userDto.getEmail());
-        newUserEntity.setFullName(userDto.getFullName());
-
         RoleEntity defaultRole = roleRepository.findByName("USER");
-        if (defaultRole != null) {
-            Set<RoleEntity> roles = new HashSet<>();
-            roles.add(defaultRole);
-            newUserEntity.setRoles(roles);
-        } else {
-            if (defaultRole == null) {
-                defaultRole = new RoleEntity();
-                defaultRole.setName("USER");
-                defaultRole.setDescription("Default role for regular users");
-                roleRepository.save(defaultRole);
-
-                Set<RoleEntity> roles = new HashSet<>();
-                roles.add(defaultRole);
-                newUserEntity.setRoles(roles);
-            }
-        }
-
-        try {
-            newUserEntity = userRepository.save(newUserEntity);
-
-            CartEntity newCart = new CartEntity();
-            newCart.setUser(newUserEntity);
-            Date createdDate = new Date();
-            newCart.setCreateDate(createdDate);
-            cartRepository.save(newCart);
-
-            AddressEntity newAddress = new AddressEntity();
-            newAddress.setAddress(userDto.getAddress());
-            newAddress.setUser(newUserEntity);
-            addressRepository.save(newAddress);
-
-            RegisterResponseDTO registerResponseDTO = new RegisterResponseDTO();
-            registerResponseDTO.setAddress(userDto.getAddress());
-            registerResponseDTO.setUsername(userDto.getUsername());
-            registerResponseDTO.setFullName(userDto.getFullName());
-            registerResponseDTO.setEmail(userDto.getEmail());
-
-            responseDTO.setStatus(AppConstants.SUCCESS_STATUS);
-            responseDTO.setData(registerResponseDTO);
-            responseDTO.setMessage(AppConstants.SUCCESS_MESSAGE);
-        } catch (Exception e) {
-            responseDTO.setStatus(AppConstants.ERROR_STATUS);
-            responseDTO.setMessage("Registration failed: " + e.getMessage());
-        }
-
-        return responseDTO;
+        return registerForAll(userDto, defaultRole);
     }
 
     @Override
@@ -163,17 +116,19 @@ public class UserServiceImpl implements UserService{
         newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
         newUserEntity.setEmail(userDto.getEmail());
         newUserEntity.setFullName(userDto.getFullName());
+        newUserEntity.setStatus(true);
 
-        List<AddressEntity> addressEntities = new ArrayList<>();
+        List<AddressEntity> addressList = new ArrayList<>();
 
 
         if (userDto.getAddressDTOList() != null) {
-            addressEntities = userDto.getAddressDTOList()
+            addressList = userDto.getAddressDTOList()
                     .stream()
                     .map(addressDto -> modelMapper.map(addressDto, AddressEntity.class))
                     .collect(Collectors.toList());
         }
-        newUserEntity.setAddressEntities(addressEntities);
+
+        newUserEntity.setAddressEntities(addressList);
 
         RoleEntity defaultRole = roleRepository.findByName("USER");
         if (defaultRole != null) {
@@ -181,16 +136,14 @@ public class UserServiceImpl implements UserService{
             roles.add(defaultRole);
             newUserEntity.setRoles(roles);
         } else {
-            if (defaultRole == null) {
-                defaultRole = new RoleEntity();
-                defaultRole.setName("USER");
-                defaultRole.setDescription("Default role for regular users");
-                roleRepository.save(defaultRole);
+            defaultRole = new RoleEntity();
+            defaultRole.setName("USER");
+            defaultRole.setDescription("Default role for regular users");
+            roleRepository.save(defaultRole);
 
-                Set<RoleEntity> roles = new HashSet<>();
-                roles.add(defaultRole);
-                newUserEntity.setRoles(roles);
-            }
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
         }
 
         UserEntity savedUser = userRepository.save(newUserEntity);
@@ -211,8 +164,13 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public ResponseDTO<UserDTO> update(Long id, UserDTO dto) {
+        return null;
+    }
+
+    @Override
     public ResponseDTO<List<UserDTO>> findAll() {
-        List<UserEntity> list = userRepository.findAll();
+        List<UserEntity> list = userRepository.findAllByJoiningAddressEntity();
 
         if (list.isEmpty()) {
             return ResponseDTO.<List<UserDTO>>builder()
@@ -222,7 +180,14 @@ public class UserServiceImpl implements UserService{
         }
 
         List<UserDTO> listRes = list.stream()
-                .map(userEntity -> modelMapper.map(userEntity, UserDTO.class))
+                .map(userEntity -> {
+                    UserDTO userDTO = modelMapper.map(userEntity, UserDTO.class);
+                    List<AddressDTO> addressDTOList = userEntity.getAddressEntities().stream()
+                            .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                            .collect(Collectors.toList());
+                    userDTO.setAddressDTOList(addressDTOList);
+                    return userDTO;
+                })
                 .collect(Collectors.toList());
 
         return ResponseDTO.<List<UserDTO>>builder()
@@ -234,50 +199,94 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public ResponseDTO<UserDTO> findById(Long id) {
-        Optional<UserEntity> optionalUser = userRepository.findById(id);
+        UserEntity userEntity = userRepository.findByIdJoiningAddressEntity(id);
 
-        if (optionalUser.isPresent()) {
-            UserDTO userDTO = modelMapper.map(optionalUser.get(), UserDTO.class);
-            return ResponseDTO.<UserDTO>builder()
-                    .status(String.valueOf(HttpStatus.OK.value()))
-                    .message(AppConstants.FOUND_MESSAGE)
-                    .data(userDTO)
-                    .build();
-        } else {
-            return ResponseDTO.<UserDTO>builder()
-                    .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                    .message(AppConstants.NOT_FOUND_MESSAGE)
-                    .build();
-        }
+        UserDTO userDTO = modelMapper.map(userEntity, UserDTO.class);
+        List<AddressDTO> addressDTOList = userEntity.getAddressEntities().stream()
+                .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                .collect(Collectors.toList());
+        userDTO.setAddressDTOList(addressDTOList);
+        return ResponseDTO.<UserDTO>builder()
+                .status(String.valueOf(HttpStatus.OK))
+                .message(AppConstants.FOUND_LIST_MESSAGE)
+                .data(userDTO)
+                .build();
     }
 
     @Override
-    public ResponseDTO<UserDTO> update(Long id, UserDTO dto) {
+    public ResponseDTO<UserDTO> updateList(Long id, UserUpdateRequestDTO dto) {
         try {
             Optional<UserEntity> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
                 UserEntity existingUser = optionalUser.get();
-                existingUser.setFullName(dto.getFullName());
-                existingUser.setPassword(passwordEncoder.encode(dto.getPassword()));
-                existingUser.setEmail(dto.getEmail());
-
-                List<AddressEntity> addressEntities = new ArrayList<>();
-
-                if (dto.getAddressDTOList() != null) {
-                    addressEntities = dto.getAddressDTOList()
-                            .stream()
-                            .map(addressDto -> modelMapper.map(addressDto, AddressEntity.class))
-                            .collect(Collectors.toList());
+                if(dto.getFullName()!=null) {
+                    existingUser.setFullName(dto.getFullName());
                 }
-                existingUser.setAddressEntities(addressEntities);
+                if(dto.getNewPassword() != null) {
+                    if(!passwordEncoder.matches(dto.getOldPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
+                                .build();
+                    }
+
+                    if(passwordEncoder.matches(dto.getNewPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_SAME_PASSWORD)
+                                .build();
+                    }
+
+                    if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_UPDATE_PASSWORD_NOT_SAME)
+                                .build();
+                    }
+
+                    existingUser.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                }
+                if(dto.getEmail() != null) {
+                    existingUser.setEmail(dto.getEmail());
+                }
+
+                if (dto.getAddressesUpdate() != null) {
+                    for (AddressUpdateRequestDTO address : dto.getAddressesUpdate()) {
+                        Optional<AddressEntity> findAddress = addressRepository.findAddressEntityByAddressAndUserId(address.getOldAddress(),id);
+                        if(findAddress.isPresent()){
+                            Optional<AddressEntity> checkNewAddressExistence = addressRepository.findAddressEntityByAddressAndUserId(address.getNewAddress(),id);
+                            if(checkNewAddressExistence.isPresent()){
+                                return ResponseDTO.<UserDTO>builder()
+                                        .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                        .message(AppConstants.USER_ADDRESS_EXIST)
+                                        .build();
+                            }
+
+                            AddressEntity updateAddress = findAddress.get();
+                            updateAddress.setUser(existingUser);
+                            updateAddress.setAddress(address.getNewAddress());
+                            addressRepository.save(updateAddress);
+                        }
+                    }
+                }
 
                 UserEntity updatedUser = userRepository.save(existingUser);
+
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(id);
+
+                UserDTO currentUserDTO = modelMapper.map(updatedUser, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
+
 
                 return ResponseDTO.<UserDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
                         .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
-                        .data(modelMapper.map(updatedUser, UserDTO.class))
+                        .data(currentUserDTO)
                         .build();
             } else {
                 return ResponseDTO.<UserDTO>builder()
@@ -299,8 +308,8 @@ public class UserServiceImpl implements UserService{
             Optional<UserEntity> optionalUser = userRepository.findById(id);
 
             if (optionalUser.isPresent()) {
-                cartRepository.deleteById(id);
-                addressRepository.deleteById(id);
+                cartRepository.deleteById(cartRepository.findCartByUserId(id).getId());
+                addressRepository.deleteById(addressRepository.findAddressEntityByUser_Id(id).getId());
                 userRepository.deleteById(id);
 
                 return ResponseDTO.<Void>builder()
@@ -317,6 +326,358 @@ public class UserServiceImpl implements UserService{
             return ResponseDTO.<Void>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                     .message(AppConstants.DELETE_FAILED_MESSAGE)
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<RegisterResponseDTO> adminRegister(RegisterRequestDTO userDto) {
+        RoleEntity defaultRole = roleRepository.findByName("ADMIN");
+        return registerForAll(userDto, defaultRole);
+    }
+
+    private ResponseDTO<RegisterResponseDTO> registerForAll(RegisterRequestDTO userDto, RoleEntity defaultRole) {
+        Optional<UserEntity> existingUser = userRepository.findByUsername(userDto.getUsername());
+
+        if (existingUser.isPresent()) {
+            return ResponseDTO.<RegisterResponseDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR))
+                    .message(AppConstants.USERNAME_EXIST_MESSAGE)
+                    .data(null)
+                    .build();
+        }
+
+        UserEntity newUserEntity = new UserEntity();
+        newUserEntity.setUsername(userDto.getUsername());
+        newUserEntity.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        newUserEntity.setEmail(userDto.getEmail());
+        newUserEntity.setStatus(true);
+        newUserEntity.setFullName(userDto.getFullName());
+
+        if (defaultRole != null) {
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
+        } else {
+            defaultRole = new RoleEntity();
+            roleRepository.save(defaultRole);
+
+            Set<RoleEntity> roles = new HashSet<>();
+            roles.add(defaultRole);
+            newUserEntity.setRoles(roles);
+        }
+
+        UserEntity userEntity = userRepository.save(newUserEntity);
+        try {
+            if(defaultRole.getName().equals("USER")){
+                CartEntity newCart = new CartEntity();
+                newCart.setUser(userEntity);
+                newCart.setCreateDate(new Date());
+                cartRepository.save(newCart);
+
+                AddressEntity newAddress = new AddressEntity();
+                newAddress.setAddress(userDto.getAddress());
+                newAddress.setUser(userEntity);
+                addressRepository.save(newAddress);
+            }
+
+            return getRegisterResponseDTOResponseDTO(userDto);
+        } catch (Exception e) {
+            ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
+            responseDTO.setStatus(AppConstants.ERROR_STATUS);
+            responseDTO.setMessage("Registration failed: " + e.getMessage());
+
+            return responseDTO;
+        }
+    }
+
+    private ResponseDTO<RegisterResponseDTO> getRegisterResponseDTOResponseDTO(RegisterRequestDTO userDto) {
+        RegisterResponseDTO registerResponseDTO = new RegisterResponseDTO();
+        registerResponseDTO.setAddress(userDto.getAddress());
+        registerResponseDTO.setUsername(userDto.getUsername());
+        registerResponseDTO.setFullName(userDto.getFullName());
+        registerResponseDTO.setEmail(userDto.getEmail());
+
+        ResponseDTO<RegisterResponseDTO> responseDTO = new ResponseDTO<>();
+        responseDTO.setStatus(AppConstants.SUCCESS_STATUS);
+        responseDTO.setData(registerResponseDTO);
+        responseDTO.setMessage(AppConstants.SUCCESS_MESSAGE);
+        return responseDTO;
+    }
+
+    @Override
+    public Long getCurrentUserId() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+
+                return userDetails.getUser().getId();
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public ResponseDTO<UserDTO> getInforCurrentUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+
+                UserEntity currentUserEntity = userDetails.getUser();
+
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(currentUserEntity.getId());
+
+                UserDTO currentUserDTO = modelMapper.map(currentUserEntity, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
+
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message("Current user information retrieved successfully")
+                        .data(currentUserDTO)
+                        .build();
+            } else {
+                // Người dùng chưa đăng nhập
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
+                        .message("User not authenticated")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to retrieve current user information")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<UserDTO> updateUserInformation(UserUpdateRequestDTO dto) {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        try {
+            Optional<UserEntity> optionalUser = userRepository.findById(userDetails.getUser().getId());
+
+            if (optionalUser.isPresent()) {
+                UserEntity existingUser = optionalUser.get();
+                if(dto.getFullName()!=null) {
+                    existingUser.setFullName(dto.getFullName());
+                }
+                if(dto.getNewPassword() != null) {
+                    if(!passwordEncoder.matches(dto.getOldPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_OLD_PASSWORD_NOT_MATCH)
+                                .build();
+                    }
+
+                    if(passwordEncoder.matches(dto.getNewPassword(), existingUser.getPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_SAME_PASSWORD)
+                                .build();
+                    }
+
+                    if(!dto.getNewPassword().equals(dto.getConfirmNewPassword())){
+                        return ResponseDTO.<UserDTO>builder()
+                                .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                .message(AppConstants.USER_UPDATE_PASSWORD_NOT_SAME)
+                                .build();
+                    }
+
+                    existingUser.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                }
+                if(dto.getEmail() != null) {
+                    existingUser.setEmail(dto.getEmail());
+                }
+
+                if (dto.getAddressesUpdate() != null) {
+                    for (AddressUpdateRequestDTO address : dto.getAddressesUpdate()) {
+                        Optional<AddressEntity> findAddress = addressRepository.findAddressEntityByAddressAndUserId(address.getOldAddress(),userDetails.getUser().getId());
+                        if(findAddress.isPresent()){
+                            Optional<AddressEntity> checkNewAddressExistence = addressRepository.findAddressEntityByAddressAndUserId(address.getNewAddress(),userDetails.getUser().getId());
+                            if(checkNewAddressExistence.isPresent()){
+                                return ResponseDTO.<UserDTO>builder()
+                                        .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                                        .message(AppConstants.USER_ADDRESS_EXIST)
+                                        .build();
+                            }
+
+                            AddressEntity updateAddress = findAddress.get();
+                            updateAddress.setUser(existingUser);
+                            updateAddress.setAddress(address.getNewAddress());
+                            addressRepository.save(updateAddress);
+                        }
+                    }
+                }
+
+                UserEntity updatedUser = userRepository.save(existingUser);
+
+                List<AddressEntity> currentUserAddress = addressRepository.findByUserId(userDetails.getUser().getId());
+
+                UserDTO currentUserDTO = modelMapper.map(updatedUser, UserDTO.class);
+
+                List<AddressDTO> addressDTOList = currentUserAddress.stream()
+                        .map(addressEntity -> modelMapper.map(addressEntity, AddressDTO.class))
+                        .collect(Collectors.toList());
+                currentUserDTO.setAddressDTOList(addressDTOList);
+
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.OK.value()))
+                        .message(AppConstants.UPDATE_SUCCESS_MESSAGE)
+                        .data(currentUserDTO)
+                        .build();
+            } else {
+                return ResponseDTO.<UserDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message(AppConstants.UPDATE_NOT_FOUND_MESSAGE)
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<UserDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<CartDTO> getUserCart(Long userId) {
+        try {
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isPresent()) {
+                UserEntity userEntity = userOptional.get();
+
+                CartEntity userCart = userEntity.getCart();
+
+                if (userCart != null) {
+                    CartDTO userCartDTO = modelMapper.map(userCart, CartDTO.class);
+
+                    List<CartLineItemDTO> cartLineItemsDTO = userCart.getCartLineItemEntities().stream()
+                            .map(cartLineItemEntity -> modelMapper.map(cartLineItemEntity, CartLineItemDTO.class))
+                            .collect(Collectors.toList());
+
+                    userCartDTO.setCartLineItemEntities(cartLineItemsDTO);
+
+                    return ResponseDTO.<CartDTO>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("User cart retrieved successfully")
+                            .data(userCartDTO)
+                            .build();
+                } else {
+                    return ResponseDTO.<CartDTO>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User cart not found")
+                            .build();
+                }
+            } else {
+                return ResponseDTO.<CartDTO>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found")
+                        .build();
+            }
+        } catch (Exception e) {
+            return ResponseDTO.<CartDTO>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to retrieve user cart")
+                    .build();
+        }
+    }
+
+    @Override
+    public ResponseDTO<Long> getUserCartId(Long userId) {
+        try {
+            Optional<UserEntity> optionalUser = userRepository.findById(userId);
+
+            if (optionalUser.isPresent()) {
+                UserEntity user = optionalUser.get();
+                CartEntity cart = user.getCart();
+
+                if (cart != null) {
+                    return ResponseDTO.<Long>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("Cart ID found successfully")
+                            .data(cart.getId())
+                            .build();
+                } else {
+                    // Người dùng không có giỏ hàng
+                    return ResponseDTO.<Long>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User does not have a cart.")
+                            .build();
+                }
+            } else {
+                // Người dùng không tồn tại
+                return ResponseDTO.<Long>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found.")
+                        .build();
+            }
+        } catch (Exception e) {
+            // Xử lý lỗi nếu có
+            return ResponseDTO.<Long>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message("Failed to get user cart ID")
+                    .build();
+        }
+    }
+
+
+    // trong truong hop cua project nay thi gio hang thi khong duoc cap nhat thong tin nhe!
+    @Override
+    public void updateUserCart(Long userId, CartDTO userCartDTO) {
+        try {
+            // Kiểm tra xem người dùng có tồn tại không
+            Optional<UserEntity> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isPresent()) {
+                UserEntity userEntity = userOptional.get();
+                CartEntity userCart = userEntity.getCart();
+
+                if (userCart != null) {
+                    // Cập nhật thông tin giỏ hàng từ DTO
+                    userCart.setCreateDate(userCartDTO.getCreateDate());
+
+                    // Cập nhật danh sách các CartLineItemEntities từ DTO
+                    List<CartLineItemEntity> updatedCartLineItems = userCartDTO.getCartLineItemEntities().stream()
+                            .map(dto -> modelMapper.map(dto, CartLineItemEntity.class))
+                            .collect(Collectors.toList());
+
+                    // Gán danh sách mới vào giỏ hàng
+                    userCart.setCartLineItemEntities(updatedCartLineItems);
+
+                    // Lưu cập nhật vào cơ sở dữ liệu
+                    userRepository.save(userEntity);
+
+                    ResponseDTO.<Void>builder()
+                            .status(String.valueOf(HttpStatus.OK.value()))
+                            .message("User cart updated successfully")
+                            .build();
+                } else {
+                    ResponseDTO.<Void>builder()
+                            .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                            .message("User does not have a cart.")
+                            .build();
+                }
+            } else {
+                ResponseDTO.<Void>builder()
+                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                        .message("User not found.")
+                        .build();
+            }
+        } catch (Exception e) {
+            ResponseDTO.<Void>builder()
+                    .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                    .message(AppConstants.INTERNAL_SERVER_ERROR)
                     .build();
         }
     }

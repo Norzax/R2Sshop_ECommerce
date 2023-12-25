@@ -1,15 +1,12 @@
 package com.aclass.r2sshop_ecommerce.models.dto.UserDetail;
 
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
-import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -53,6 +50,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return (user.isStatus() == true || user.isStatus() == false) ? user.isStatus() : true;
     }
 }

@@ -1,13 +1,11 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
-import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 
 @Getter

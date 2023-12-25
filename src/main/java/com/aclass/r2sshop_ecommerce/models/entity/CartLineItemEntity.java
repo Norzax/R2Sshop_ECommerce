@@ -1,7 +1,6 @@
 package com.aclass.r2sshop_ecommerce.models.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,7 +33,6 @@ public class CartLineItemEntity {
 
     @Column(name="total_price")
     private Double totalPrice;
-
 
     @Column(name = "added_date")
     private Timestamp addedDate;

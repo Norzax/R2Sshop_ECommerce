@@ -1,8 +1,9 @@
-package com.aclass.r2sshop_ecommerce.controllers;
+package com.aclass.r2sshop_ecommerce.controllers.ForAdmin;
 
-import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
-import com.aclass.r2sshop_ecommerce.services.address.AddressService;
+import com.aclass.r2sshop_ecommerce.models.dto.common.UserUpdateRequestDTO;
+import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -13,48 +14,48 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Address Controller" )
+@Tag(name = "3. Admin: <User>")
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/address")
-public class AddressController {
+@RequestMapping("/api/v1/admin/user")
+public class UserForAdminController {
 
-    private final AddressService addressService;
+    private final UserService userService;
 
-    public AddressController(AddressService addressService) {
-        this.addressService = addressService;
+    public UserForAdminController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ResponseDTO<List<AddressDTO>>> findAll() {
-        ResponseDTO<List<AddressDTO>> response = addressService.findAll();
+    public ResponseEntity<ResponseDTO<List<UserDTO>>> findAll() {
+        ResponseDTO<List<UserDTO>> response = userService.findAll();
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @GetMapping("/findById/{id}")
-    public ResponseEntity<ResponseDTO<AddressDTO>> findById(@PathVariable Long id) {
-        ResponseDTO<AddressDTO> response = addressService.findById(id);
+    @GetMapping("/find-id/{id}")
+    public ResponseEntity<ResponseDTO<UserDTO>> findById(@PathVariable Long id) {
+        ResponseDTO<UserDTO> response = userService.findById(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ResponseDTO<AddressDTO>> create(@Valid @RequestBody AddressDTO addressDTO) {
-        ResponseDTO<AddressDTO> response = addressService.create(addressDTO);
+    public ResponseEntity<ResponseDTO<UserDTO>> createUser(@Valid @RequestBody UserDTO userDTO) {
+        ResponseDTO<UserDTO> response = userService.create(userDTO);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ResponseDTO<AddressDTO>> update(@PathVariable Long id, @Valid @RequestBody AddressDTO updatedAddressDTO) {
-        ResponseDTO<AddressDTO> response = addressService.update(id, updatedAddressDTO);
+    public ResponseEntity<ResponseDTO<UserDTO>> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateRequestDTO updatedUserDTO) {
+        ResponseDTO<UserDTO> response = userService.updateList(id, updatedUserDTO);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ResponseDTO<Void>> delete(@PathVariable Long id) {
-        ResponseDTO<Void> response = addressService.delete(id);
+    public ResponseEntity<ResponseDTO<Void>> deleteUser(@PathVariable Long id) {
+        ResponseDTO<Void> response = userService.delete(id);
         HttpStatus httpStatus = response.getStatus().equals("404 NOT_FOUND") ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }
