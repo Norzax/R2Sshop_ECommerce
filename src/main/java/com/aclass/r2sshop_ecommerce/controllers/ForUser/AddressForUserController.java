@@ -41,9 +41,9 @@ public class AddressForUserController {
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    @PutMapping("/update/{addressId}")
-    public ResponseEntity<ResponseDTO<AddressDTO>> updateAddressForLoggedInUser(@PathVariable Long addressId, @Valid @RequestBody AddressUpdateRequestDTO updateRequest) {
-        ResponseDTO<AddressDTO> response = addressService.updateAddressForLoggedInUser(addressId, updateRequest);
+    @PutMapping("/update")
+    public ResponseEntity<ResponseDTO<AddressDTO>> updateAddressForLoggedInUser(@Valid @RequestBody AddressUpdateRequestDTO updateRequest) {
+        ResponseDTO<AddressDTO> response = addressService.updateAddressForLoggedInUser(updateRequest);
         HttpStatus httpStatus = response.getStatus().equals(String.valueOf(HttpStatus.NOT_FOUND.value())) ? HttpStatus.NOT_FOUND : HttpStatus.OK;
         return ResponseEntity.status(httpStatus).body(response);
     }

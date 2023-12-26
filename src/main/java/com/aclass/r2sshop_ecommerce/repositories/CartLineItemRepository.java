@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface CartLineItemRepository extends JpaRepository<CartLineItemEntity, Long> {
-    @Query("select clt from CartLineItemEntity clt where clt.variantProduct.id = :variantProductId and clt.cart.id = :cartId")
+    @Query("SELECT clt FROM CartLineItemEntity clt WHERE clt.variantProduct.id = :variantProductId AND clt.cart.id = :cartId AND clt.isDeleted = false")
     Optional<CartLineItemEntity> getExistCartLineItem(@Param("variantProductId") Long variantProductId, @Param("cartId") Long cartId);
     @Query("select count(clt) from CartLineItemEntity clt where clt.cart.id = :cartId and clt.isDeleted = false")
     int getIfCartHaveItem(Long cartId);

@@ -317,7 +317,7 @@ public class CartServiceImpl implements CartService {
 
             ResponseDTO<VariantProductDTO> variantProductDTO = variantProductService.findById(variantProductId);
 
-            if (variantProductDTO != null && userCartDTO != null) {
+            if (variantProductDTO.getData() != null && userCartDTO != null) {
                 Optional<CartLineItemEntity> existingCartItem = cartLineItemRepository.getExistCartLineItem(variantProductId, cartId);
 
                 if (quantity == 0) {

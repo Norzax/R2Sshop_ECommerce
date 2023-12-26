@@ -97,6 +97,8 @@ public class PromoteServiceImpl implements PromoteService{
             promoEntity.setUsageLimit(-1);
         } else if(dto.getUsageLimit() == 0 && is_order_discount){
             promoEntity.setUsageLimit(10);
+        } else{
+            promoEntity.setUsageLimit(dto.getUsageLimit());
         }
 
         if (!is_order_discount) {
