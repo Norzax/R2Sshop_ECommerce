@@ -48,7 +48,7 @@ public class PromoScheduler {
             }
 
             if (!updatedNewPrice) {
-                if (cartLineItem.getTotalPrice() != null) {
+                if (cartLineItem.getTotalPrice() != null && !cartLineItem.getIsDeleted()) {
                     cartLineItem.setTotalPrice(calculateOldPrice(cartLineItem) * cartLineItem.getQuantity());
                 }
             }
