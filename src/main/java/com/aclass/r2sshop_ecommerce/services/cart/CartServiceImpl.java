@@ -1,5 +1,6 @@
 package com.aclass.r2sshop_ecommerce.services.cart;
 
+import com.aclass.r2sshop_ecommerce.configurations.PromoScheduler;
 import com.aclass.r2sshop_ecommerce.models.dto.CartDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.CartLineItemDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.VariantProductDTO;
@@ -30,16 +31,18 @@ public class CartServiceImpl implements CartService {
     private final VariantProductRepository variantProductRepository;
     private final OrderRepository orderRepository;
     private final UserService userService;
+    private final PromoScheduler promoScheduler;
     private final VariantProductService variantProductService;
     private final ModelMapper modelMapper;
 
-    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, CartLineItemRepository cartLineItemRepository, VariantProductRepository variantProductRepository, OrderRepository orderRepository, UserService userService, VariantProductService variantProductService, ModelMapper modelMapper) {
+    public CartServiceImpl(CartRepository cartRepository, UserRepository userRepository, CartLineItemRepository cartLineItemRepository, VariantProductRepository variantProductRepository, OrderRepository orderRepository, UserService userService, PromoScheduler promoScheduler, VariantProductService variantProductService, ModelMapper modelMapper) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.cartLineItemRepository = cartLineItemRepository;
         this.variantProductRepository = variantProductRepository;
         this.orderRepository = orderRepository;
         this.userService = userService;
+        this.promoScheduler = promoScheduler;
         this.variantProductService = variantProductService;
         this.modelMapper = modelMapper;
     }
@@ -385,6 +388,8 @@ public class CartServiceImpl implements CartService {
 
                 CartDTO cartDTO = new CartDTO();
                 cartDTO.setCartLineItemEntities(cartLineItemDTOs);
+
+                promoScheduler.updateCartLineItemTotalPrices();
 
                 return ResponseDTO.<CartDTO>builder()
                         .status(String.valueOf(HttpStatus.OK.value()))
