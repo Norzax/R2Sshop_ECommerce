@@ -9,13 +9,13 @@ import com.aclass.r2sshop_ecommerce.services.IService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public interface AddressService extends IService<AddressDTO> {
 
     ResponseDTO<List<AddressDTO>> findAddressesForLoggedInUser();
     ResponseDTO<AddressDTO> createAddressForLoggedInUser(AddressDTO addressDTO);
-    ResponseDTO<AddressDTO> updateAddressForLoggedInUser(Long addressId, AddressUpdateRequestDTO updateRequest);
+    ResponseDTO<AddressDTO> updateAddressForLoggedInUser(AddressUpdateRequestDTO updateRequest);
     ResponseDTO<Void> deleteAddressForLoggedInUser(Long addressId);
-
 }

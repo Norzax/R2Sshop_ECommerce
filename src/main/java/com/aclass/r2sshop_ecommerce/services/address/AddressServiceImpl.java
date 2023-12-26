@@ -2,12 +2,15 @@ package com.aclass.r2sshop_ecommerce.services.address;
 
 import com.aclass.r2sshop_ecommerce.constants.AppConstants;
 import com.aclass.r2sshop_ecommerce.models.dto.AddressDTO;
+import com.aclass.r2sshop_ecommerce.models.dto.UserDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.UserDetail.CustomUserDetails;
 import com.aclass.r2sshop_ecommerce.models.dto.common.AddressUpdateRequestDTO;
 import com.aclass.r2sshop_ecommerce.models.dto.common.ResponseDTO;
 import com.aclass.r2sshop_ecommerce.models.entity.AddressEntity;
 import com.aclass.r2sshop_ecommerce.models.entity.UserEntity;
 import com.aclass.r2sshop_ecommerce.repositories.AddressRepository;
+import com.aclass.r2sshop_ecommerce.repositories.UserRepository;
+import com.aclass.r2sshop_ecommerce.services.user.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -22,10 +25,14 @@ import java.util.stream.Collectors;
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
     private final ModelMapper modelMapper;
 
-    public AddressServiceImpl(AddressRepository addressRepository, ModelMapper modelMapper) {
+    public AddressServiceImpl(AddressRepository addressRepository, UserRepository userRepository, UserService userService, ModelMapper modelMapper) {
         this.addressRepository = addressRepository;
+        this.userRepository = userRepository;
+        this.userService = userService;
         this.modelMapper = modelMapper;
     }
 
@@ -68,18 +75,20 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public ResponseDTO<AddressDTO> createAddressForLoggedInUser(AddressDTO addressDTO) {
         try {
-            UserEntity loggedInUser = getLoggedInUser();
+//            UserEntity loggedInUser = getLoggedInUser();
 
-            Optional<AddressEntity> existingAddress = addressRepository.findByAddressAndUser(addressDTO.getAddress(), loggedInUser);
-            if (existingAddress.isPresent()) {
+            Long userId = userService.getCurrentUserId();
+            UserEntity loggerInUser = userRepository.findById(userId).get();
+            Optional<AddressEntity> foundAddress = addressRepository.findAddressEntityByAddressAndUserId(addressDTO.getAddress(),userId);
+            if (foundAddress.isPresent()){
                 return ResponseDTO.<AddressDTO>builder()
                         .status(String.valueOf(HttpStatus.BAD_REQUEST.value()))
-                        .message(AppConstants.UN_AUTHORIZED_MESAGE)
+                        .message("This address already exists in your profile, cannot create more")
                         .build();
             }
 
             AddressEntity newAddressEntity = modelMapper.map(addressDTO, AddressEntity.class);
-            newAddressEntity.setUser(loggedInUser);
+            newAddressEntity.setUser(loggerInUser);
             AddressEntity savedAddressEntity = addressRepository.save(newAddressEntity);
 
             AddressDTO savedAddressDTO = modelMapper.map(savedAddressEntity, AddressDTO.class);
@@ -98,24 +107,33 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResponseDTO<AddressDTO> updateAddressForLoggedInUser(Long addressId, AddressUpdateRequestDTO updateRequest) {
+    public ResponseDTO<AddressDTO> updateAddressForLoggedInUser(AddressUpdateRequestDTO updateRequest) {
         try {
-            UserEntity loggedInUser = getLoggedInUser();
+            Long userId = userService.getCurrentUserId();
 
-            Optional<AddressEntity> optionalAddress = addressRepository.findById(addressId);
-            if (optionalAddress.isPresent()) {
-                AddressEntity address = optionalAddress.get();
-                if (!address.getUser().equals(loggedInUser)) {
+            Optional<AddressEntity> foundAddressOptional = addressRepository.findAddressEntityByAddressAndUserId(updateRequest.getOldAddress(), userId);
+
+            if (foundAddressOptional.isPresent()) {
+                AddressEntity foundAddress = foundAddressOptional.get();
+
+                if (!foundAddress.getUser().getId().equals(userId)) {
                     return ResponseDTO.<AddressDTO>builder()
                             .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
                             .message(AppConstants.UN_AUTHORIZED_MESAGE)
                             .build();
                 }
 
-                address.setAddress(updateRequest.getNewAddress());
+                Optional<AddressEntity> existingAddress = addressRepository.findAddressEntityByAddressAndUserId(updateRequest.getNewAddress(), userId);
 
-                AddressEntity updatedAddress = addressRepository.save(address);
+                if (existingAddress.isPresent()) {
+                    return ResponseDTO.<AddressDTO>builder()
+                            .status(AppConstants.INTERNAL_SERVER_ERROR)
+                            .message("This address already exists in your profile, cannot update")
+                            .build();
+                }
 
+                foundAddress.setAddress(updateRequest.getNewAddress()); // Update the address
+                AddressEntity updatedAddress = addressRepository.save(foundAddress);
                 AddressDTO updatedAddressDTO = modelMapper.map(updatedAddress, AddressDTO.class);
 
                 return ResponseDTO.<AddressDTO>builder()
@@ -125,14 +143,14 @@ public class AddressServiceImpl implements AddressService {
                         .build();
             } else {
                 return ResponseDTO.<AddressDTO>builder()
-                        .status(String.valueOf(HttpStatus.NOT_FOUND.value()))
-                        .message(AppConstants.NOT_FOUND_MESSAGE)
+                        .status(AppConstants.INTERNAL_SERVER_ERROR)
+                        .message("Old address not exist for update")
                         .build();
             }
         } catch (Exception e) {
             return ResponseDTO.<AddressDTO>builder()
                     .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                    .message(AppConstants.UPDATE_FAILED_MESSAGE)
+                    .message(AppConstants.UPDATE_FAILED_MESSAGE + ": " + e.getMessage())
                     .build();
         }
     }
@@ -141,12 +159,13 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public ResponseDTO<Void> deleteAddressForLoggedInUser(Long addressId) {
         try {
-            UserEntity loggedInUser = getLoggedInUser();
+            // UserEntity loggedInUser = getLoggedInUser();
+            Long userId = userService.getCurrentUserId();
 
             Optional<AddressEntity> optionalAddress = addressRepository.findById(addressId);
             if (optionalAddress.isPresent()) {
                 AddressEntity address = optionalAddress.get();
-                if (!address.getUser().equals(loggedInUser)) {
+                if (!address.getUser().getId().equals(userId)) {
                     return ResponseDTO.<Void>builder()
                             .status(String.valueOf(HttpStatus.UNAUTHORIZED.value()))
                             .message(AppConstants.UN_AUTHORIZED_MESAGE)

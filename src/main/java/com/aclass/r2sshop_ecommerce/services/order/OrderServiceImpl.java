@@ -111,12 +111,19 @@ public class OrderServiceImpl implements OrderService {
             if(requestDTO.getPromoCode() != null && !requestDTO.getPromoCode().isEmpty()){
                 Optional<PromoEntity> findPromo = promoRepository.getByCodeAndValid(requestDTO.getPromoCode());
                 if(findPromo.isPresent()){
-                    discount = findPromo.get().getDiscountPercentage();
-                    if (findPromo.get().getUsageLimit() > 0) {
-                        findPromo.get().setUsageLimit(findPromo.get().getUsageLimit() - 1);
-                        promoRepository.save(findPromo.get());
-                    } else if (findPromo.get().getUsageLimit() == 0) {
-                        promoScheduler.updateCartLineItemTotalPrices();
+                    if(findPromo.get().isOrderDiscount()) {
+                        discount = findPromo.get().getDiscountPercentage();
+                        if (findPromo.get().getUsageLimit() > 0) {
+                            findPromo.get().setUsageLimit(findPromo.get().getUsageLimit() - 1);
+                            promoRepository.save(findPromo.get());
+                        } else if (findPromo.get().getUsageLimit() == 0) {
+                            promoScheduler.updateCartLineItemTotalPrices();
+                        }
+                    } else if(!findPromo.get().isOrderDiscount()){
+                        return ResponseDTO.<OrderResponseDTO>builder()
+                            .status(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                            .message("Code not exists")
+                            .build();
                     }
                 }
             }

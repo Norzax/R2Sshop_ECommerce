@@ -37,20 +37,24 @@ public class PromoScheduler {
         List<CartLineItemEntity> cartLineItems = cartLineItemRepository.findAll();
 
         for (CartLineItemEntity cartLineItem : cartLineItems) {
+            boolean updatedNewPrice = false;
             for (PromoEntity promo : cartLineItem.getVariantProduct().getPromos()) {
-                if(!cartLineItem.getIsDeleted()) {
-                    if (promo.getEndDate().after(new Date()) && promo.getStartDate().before(new Date()) && promo.getUsageLimit() != 0 && promo.getIsEnable()) {
-                        double newPrice = calculateNewPrice(cartLineItem, promo);
-                        cartLineItem.setTotalPrice(newPrice * cartLineItem.getQuantity());
-                    } else if (promo.getEndDate().before(new Date()) || !promo.getIsEnable() || promo.getStartDate().after(new Date()) || promo.getUsageLimit() <= 0) {
-                        if (cartLineItem.getTotalPrice() != null) {
-                            cartLineItem.setTotalPrice(calculateOldPrice(cartLineItem) * cartLineItem.getQuantity());
-                        }
-                    }
+                if (!cartLineItem.getIsDeleted() && promo != null && promo.getEndDate().after(new Date()) && promo.getStartDate().before(new Date()) && promo.getUsageLimit() != 0 && promo.getIsEnable()) {
+                    double newPrice = calculateNewPrice(cartLineItem, promo);
+                    cartLineItem.setTotalPrice(newPrice * cartLineItem.getQuantity());
+                    updatedNewPrice = true;
+                    break;
                 }
             }
+
+            if (!updatedNewPrice) {
+                if (cartLineItem.getTotalPrice() != null) {
+                    cartLineItem.setTotalPrice(calculateOldPrice(cartLineItem) * cartLineItem.getQuantity());
+                }
+            }
+
+            cartLineItemRepository.save(cartLineItem);
         }
-        cartLineItemRepository.saveAll(cartLineItems);
     }
 
     private double calculateNewPrice(CartLineItemEntity cartLineItem, PromoEntity promo) {

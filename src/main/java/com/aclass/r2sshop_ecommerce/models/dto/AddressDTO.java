@@ -17,6 +17,7 @@ public class AddressDTO {
         private Long id;
         private String address;
 
+        @JsonIgnore
         private Long userId;
 }
 
